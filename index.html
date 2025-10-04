@@ -1,0 +1,1999 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <!-- 修复：添加 maximum-scale=1.0 和 user-scalable=no 来禁止用户缩放，防止输入框聚焦时页面放大 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>忧郁风格全屏手机主屏幕</title>
+
+    <!-- iOS Web App 全屏支持 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/这里放你想在主页面显示的图标链接.png">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- 用于动态加载自定义字体的样式块 -->
+    <style id="custom-font-style-block"></style>
+    
+    <style>
+        /* --- CSS 变量定义 --- */
+        :root {
+            --theme-base-color: #3A3F4A;
+            --theme-secondary-color: #5A6070;
+            --theme-base-color-rgb: 58, 63, 74;
+            --global-opacity: 0.7;
+            --battery-fill-color: #ADD8E6;
+            --battery-border-color: #FFFFFF;
+            --global-font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            --global-font-color: #D3D7E0;
+            --global-font-weight: 300;
+            /* 微信主题色 */
+            --wechat-theme-green: #07C160;
+        }
+
+        /* --- 基础和布局样式 --- */
+        body {
+            margin: 0; padding: 0; background: #2C2F3A; display: flex;
+            justify-content: center; align-items: center; height: 100vh;
+            width: 100vw; font-family: var(--global-font-family); color: var(--global-font-color);
+            font-weight: var(--global-font-weight); box-sizing: border-box; -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- 屏幕容器 --- */
+        .phone-screen, .settings-screen, .icon-settings-screen, .theme-settings-screen,
+        .font-settings-screen, .character-settings-screen, .dialogue-screen, .world-book-screen,
+        .friend-settings-screen, .api-settings-screen, .wechat-container-screen, .wechat-new-moment-screen,
+        .wechat-select-friends-screen, .wechat-wallet-screen, .wechat-visibility-settings-screen,
+        .wechat-group-settings-screen /* 新增 */
+         {
+            width: 100%; max-width: 414px; height: 100vh; background: #1A1C22;
+            overflow: hidden; position: relative; background-size: cover; background-position: center;
+            background-repeat: no-repeat; display: flex; flex-direction: column;
+        }
+
+        /* --- 主屏幕组件 --- */
+        .dynamic-island {
+            width: 120px; height: 30px; background: #000; border-radius: 15px; position: absolute;
+            top: 10px; left: 50%; transform: translateX(-50%); transition: transform 0.2s ease-out;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 10px; box-sizing: border-box; font-size: 14px; cursor: pointer;
+        }
+        .dynamic-island.clicked { transform: translateX(-50%) scale(1.1); }
+        .status-bar { display: flex; justify-content: space-between; padding: 10px 20px; font-size: 14px; }
+        .battery { display: flex; align-items: center; position: relative; width: 24px; height: 11px;
+            border: 1px solid var(--battery-border-color); border-radius: 3px; background: transparent;
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.3); }
+        .battery::after { content: ''; position: absolute; right: -3px; top: 3px; width: 2px; height: 5px;
+            background: var(--battery-border-color); border-radius: 1px; }
+        .battery-fill { height: 9px; border-radius: 2px; margin-left: 1px; width: 85%;
+            background-color: var(--battery-fill-color); }
+        .user-info { text-align: center; margin-top: 30px; padding: 0 20px; }
+        .avatar-container { position: relative; margin: 0 auto; width: 80%; max-width: 300px;
+            height: 120px; background-color: rgba(var(--theme-base-color-rgb), var(--global-opacity));
+            border-radius: 20px; display: flex; justify-content: center; align-items: center; cursor: pointer;
+            background-size: cover; background-position: center; background-repeat: no-repeat; }
+        .avatar { width: 60px; height: 60px; border-radius: 50%; position: absolute; top: 80px; cursor: pointer;
+            background-size: cover; background-position: center; background-repeat: no-repeat; border: 2px solid #FFFFFF; box-sizing: border-box; }
+        .user-name { margin-top: 30px; font-size: 18px; font-weight: var(--global-font-weight); }
+        .user-bio { font-size: 14px; color: #8A8FA0; margin: 5px 0; }
+        .user-location { font-size: 12px; color: #8A8FA0; display: flex; justify-content: center; align-items: center; }
+        .user-location::before { content: '❄️'; margin-right: 5px; }
+        .widgets-apps { display: flex; justify-content: center; gap: 20px; padding: 20px; margin-top: 20px;
+            align-items: flex-start; flex-grow: 1; }
+        .widget { width: 150px; height: 150px; background-color: rgba(var(--theme-base-color-rgb), var(--global-opacity));
+            border-radius: 15px; display: flex; justify-content: center; align-items: center;
+            font-size: 14px; cursor: pointer; background-size: cover; background-position: center; background-repeat: no-repeat; }
+        .apps { display: grid; grid-template-columns: repeat(2, 1fr); column-gap: 10px; row-gap: 30px; }
+        .app-container { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .app { width: 60px; height: 60px; background-color: rgba(var(--theme-base-color-rgb), var(--global-opacity));
+            border-radius: 15px; display: flex; justify-content: center; align-items: center;
+            font-size: 24px; transition: transform 0.2s; background-size: cover; background-position: center; cursor: pointer; }
+        .app:hover { transform: scale(1.1); }
+        .app-label { font-size: 12px; }
+        .nav-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%;
+            max-width: 380px; height: 60px; background: rgba(var(--theme-base-color-rgb), var(--global-opacity));
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 20px;
+            display: flex; justify-content: space-around; align-items: center; margin-bottom: 10px; }
+        .nav-app { background-color: rgba(var(--theme-base-color-rgb), var(--global-opacity)); border: none; padding: 0;
+            font-family: inherit; color: inherit; width: 48px; height: 48px; border-radius: 12px; display: flex;
+            justify-content: center; align-items: center; font-size: 14px; transition: transform 0.2s; cursor: pointer; }
+        .nav-app:hover { transform: scale(1.1); }
+
+        /* --- 设置界面通用样式 --- */
+        /* 所有设置页面的导航栏恢复透明 */
+        .settings-screen .settings-header, 
+        .icon-settings-screen .settings-header, 
+        .theme-settings-screen .settings-header,
+        .font-settings-screen .settings-header, 
+        .character-settings-screen .settings-header, 
+        .world-book-screen .settings-header, 
+        .friend-settings-screen .settings-header, /* 好友设置页面导航栏恢复透明 */
+        .api-settings-screen .settings-header {
+            background: transparent; /* 恢复为透明 */
+            border-bottom: none; /* 移除边框 */
+            color: var(--global-font-color); /* 恢复字体颜色 */
+        }
+        /* 所有设置页面的标题和按钮颜色恢复 */
+        .settings-screen .settings-header .title,
+        .icon-settings-screen .settings-header .title,
+        .theme-settings-screen .settings-header .title,
+        .font-settings-screen .settings-header .title,
+        .character-settings-screen .settings-header .title,
+        .world-book-screen .settings-header .title,
+        .friend-settings-screen .settings-header .title,
+        .api-settings-screen .settings-header .title,
+        .settings-screen .settings-header button, 
+        .icon-settings-screen .settings-header button, 
+        .theme-settings-screen .settings-header button,
+        .font-settings-screen .settings-header button, 
+        .character-settings-screen .settings-header button, 
+        .world-book-screen .settings-header button, 
+        .friend-settings-screen .settings-header button, 
+        .api-settings-screen .settings-header button {
+            color: var(--global-font-color); /* 恢复按钮字体颜色 */
+        }
+
+        .settings-screen, .icon-settings-screen, .theme-settings-screen, .font-settings-screen,
+        .world-book-screen, .friend-settings-screen, .api-settings-screen, .wechat-container-screen,
+        .wechat-new-moment-screen, .wechat-select-friends-screen, .wechat-wallet-screen,
+        .wechat-visibility-settings-screen, .wechat-group-settings-screen {
+            display: none; z-index: 10; padding: 10px 20px; box-sizing: border-box; }
+
+        /* 修改主题美化和字体设置屏幕的 main 区域，使其可滚动 */
+        .theme-settings-screen main,
+        .font-settings-screen main {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-bottom: 20px; /* 确保底部有足够空间 */
+        }
+
+        .settings-header { height: 44px; display: flex; align-items: center; justify-content: space-between;
+            position: relative; flex-shrink: 0; } 
+        .settings-header .title { font-size: 18px; font-weight: 500; position: absolute; left: 50%; transform: translateX(-50%); }
+        .settings-header button { background: none; border: none; font-size: 16px; cursor: pointer; padding: 0; }
+        .settings-list { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .settings-item { background-color: rgba(var(--theme-base-color-rgb), var(--global-opacity)); padding: 12px 15px;
+            border-radius: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 16px; }
+        .settings-item:hover { filter: brightness(1.2); }
+        .icon-edit-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 40px; justify-items: center; }
+        .icon-editable { cursor: pointer; }
+
+        /* --- 主题/字体/API设置表单样式 --- */
+        .theme-controls { padding: 20px; margin-top: 15px; background-color: rgba(var(--theme-base-color-rgb), var(--global-opacity));
+            border-radius: 10px; display: flex; flex-direction: column; gap: 20px; }
+        .theme-controls h4 { margin: 0 0 10px 0; font-weight: 500; border-bottom: 1px solid #8A8FA0; padding-bottom: 10px; }
+        .theme-control-item { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .theme-control-item label { font-size: 16px; width: 100%; margin-bottom: 8px; }
+        input[type="color"] { width: 40px; height: 40px; border: none; padding: 0; border-radius: 50%;
+            cursor: pointer; background-color: transparent; }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: 1px solid #8A8FA0; border-radius: 50%; }
+        input[type="range"] { flex-grow: 1; margin-left: 20px; }
+        .action-buttons { display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px; }
+        .action-buttons button, .action-btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; }
+        .save-btn { background-color: #007AFF; color: white; }
+        .reset-btn { background-color: #555; color: white; }
+        .action-btn { background-color: #007AFF; color: white; flex-grow: 1; }
+        .font-input, .api-input, .model-select { width: 100%; padding: 10px; box-sizing: border-box; background-color: #5A6070;
+            border: 1px solid #8A8FA0; border-radius: 5px; color: var(--global-font-color); margin-top: 5px; }
+        .model-select { -webkit-appearance: none; appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23D3D7E0%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat; background-position: right 10px top 50%; background-size: 10px auto; padding-right: 30px; }
+
+        /* 修复：防止移动端输入时页面放大 */
+        #message-input, .new-moment-content textarea, .modal input, .form-group input, .form-group textarea, .api-input, .font-input {
+            font-size: 16px;
+        }
+
+        /* --- 聊天相关界面样式 --- */
+        .character-item-wrapper {
+            position: relative;
+            overflow: hidden; /* Hide swipe actions initially */
+            display: flex; /* Allow content and actions to sit side-by-side */
+            width: 100%; /* Take full width */
+            background-color: #FFFFFF; /* Ensure solid background for swipe */
+            border-bottom: 1px solid #E5E5E5;
+        }
+        .character-item-wrapper:last-child {
+            border-bottom: none;
+        }
+        .character-item { display: flex; align-items: center; gap: 15px; padding: 10px 15px;
+            background-color: #FFFFFF; /* Should be explicitly white to prevent transparency issues */
+            color: #000;
+            flex-grow: 1; /* Take all available space in wrapper */
+            position: relative;
+            z-index: 10;
+            transition: transform 0.3s ease-out; /* Smooth slide effect */
+            cursor: pointer;
+            border-radius: 0 !important; /* Override default if any */
+        }
+        /* 修改置顶好友的背景颜色为浅灰色 */
+        .character-item.pinned {
+            background-color: #EAEAEA; /* 浅灰色 */
+        }
+        /* 移除置顶表情弹窗 */
+        .character-item .pin-indicator {
+            display: none; /* 直接隐藏表情 */
+        }
+
+        .swipe-actions {
+            position: absolute;
+            top: 0;
+            right: 0;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            transform: translateX(100%); /* Initially off-screen */
+            transition: transform 0.3s ease-out;
+            z-index: 9; /* Below character-item */
+            background-color: #FFC107; /* Default for pin, will be overridden */
+        }
+        .character-item-wrapper.swiped .character-item {
+            transform: translateX(-120px); /* Adjust based on actions width */
+        }
+        .character-item-wrapper.swiped .swipe-actions {
+            transform: translateX(0);
+        }
+        .swipe-actions button {
+            height: 100%;
+            width: 60px; /* Width of each action button */
+            border: none;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .action-pin { background-color: #FFC107; } /* Yellow for Pin */
+        .action-delete { background-color: #EA5455; } /* Red for Delete */
+
+
+        .character-avatar { width: 50px; height: 50px; border-radius: 50%; background-color: #5A6070;
+            background-size: cover; background-position: center; background-repeat: no-repeat; flex-shrink: 0; }
+        .character-name { font-size: 16px; }
+        /* 角色设定背景确保不透明 */
+        .character-settings-screen { 
+            display: none; z-index: 10; padding: 0 5px; box-sizing: border-box; 
+            background: #F7F7F7 !important; /* 确保为实色 */ 
+            color: #333; 
+        }
+        .character-settings-screen > main { flex-grow: 1; overflow-y: auto; padding: 20px; }
+        .character-settings-form { display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 20px;
+            background: #FFFFFF; border-radius: 15px; }
+        .avatar-preview { width: 100px; height: 100px; border-radius: 50%; background-color: #E5E5EA;
+            background-size: cover; background-position: center; background-repeat: no-repeat; cursor: pointer;
+            border: 2px dashed #8A8FA0; display: flex; justify-content: center; align-items: center; font-size: 14px;
+            color: #8A8FA0; box-sizing: border-box; text-align: center; overflow: hidden; flex-shrink: 0; }
+        .avatar-preview::before { content: '点击上传头像'; display: block; padding: 10px; }
+        .avatar-preview.has-image::before { content: none; }
+        .form-group { width: 100%; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 14px; color: #8A8FA0; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; box-sizing: border-box;
+            background-color: #F7F7F7; border: 1px solid #E5E5EA; border-radius: 8px; color: #333; }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        .form-actions { display: flex; gap: 15px; width: 100%; justify-content: center; margin-top: 20px; }
+        .form-actions button { flex-grow: 1; padding: 12px; border-radius: 10px; border: none; font-size: 16px; cursor: pointer; }
+        #save-char-btn { background-color: #007AFF; color: white; }
+        #cancel-char-btn { background-color: #555; color: white; }
+        /* 对话界面背景实色 */
+        .dialogue-screen { 
+            display: flex; flex-direction: column; padding: 10px 0 0 0; 
+            background: #F7F7F7 !important; /* 确保对话界面背景为实色 */ 
+        }
+        /* 对话页面的导航栏实色 */
+        .dialogue-screen .settings-header {
+            background-color: #F7F7F7 !important; /* 确保为实色 */
+            border-bottom: 1px solid #DCDCDC !important; /* 确保有边框 */
+        }
+        .dialogue-screen .settings-header .title,
+        .dialogue-screen .settings-header button {
+            color: #000 !important; /* 确保标题和按钮颜色 */
+        }
+        #dialogue-settings-btn { font-size: 20px; font-weight: bold; line-height: 1; padding: 0 5px; }
+        #dialogue-content { flex-grow: 1; min-height: 0; overflow-y: auto; padding: 10px; display: flex;
+            flex-direction: column; gap: 15px; }
+        .message-row { display: flex; gap: 10px; align-items: flex-end; }
+        .message-row.my-message { justify-content: flex-end; }
+        .message-row.their-message { justify-content: flex-start; }
+        /* 系统消息样式 */
+        .message-row.system-message {
+            justify-content: center; /* 居中显示 */
+            margin: 5px 0;
+        }
+        .system-message .chat-system-text {
+            font-size: 12px; /* 小字体 */
+            color: #8A8FA0; /* 浅灰色 */
+            padding: 4px 8px;
+            border-radius: 5px;
+            background-color: rgba(0, 0, 0, 0.05); /* 略微背景色 */
+        }
+
+        .chat-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: #ccc;
+            background-size: cover; background-position: center; flex-shrink: 0; }
+        .chat-bubble { max-width: 65%; padding: 10px 15px; border-radius: 18px; line-height: 1.4; word-wrap: break-word; }
+        .my-bubble { background-color: #007AFF; color: white; border-bottom-right-radius: 4px; border: 1px solid rgba(0, 0, 0, 0.1); } /* 我的气泡描边 */
+        .their-bubble { background-color: #FFFFFF; color: #333; border-bottom-left-radius: 4px; border: 1px solid #E5E5EA; }
+        .wechat-voice-bubble { background-color: #007AFF; color: white; border-bottom-right-radius: 4px; display: flex;
+            align-items: center; gap: 8px; padding: 8px 12px; min-width: 70px; justify-content: flex-end; cursor: pointer; border: 1px solid rgba(0, 0, 0, 0.1); } /* 我的语音气泡描边 */
+        .voice-duration { font-size: 14px; color: #FFFFFF; margin-right: 5px; order: -1; }
+        .wechat-voice-icon { width: 16px; height: 16px; position: relative; transform: rotate(90deg); }
+        .wechat-voice-icon span { position: absolute; bottom: 0; left: 50%; background-color: #FFFFFF;
+            border-radius: 2px; transform-origin: bottom; width: 2px; }
+        .wechat-voice-icon .bar1 { height: 30%; transform: translateX(-4px); }
+        .wechat-voice-icon .bar2 { height: 60%; transform: translateX(0px); }
+        .wechat-voice-icon .bar3 { height: 100%; transform: translateX(4px); }
+        /* 对话底部导航栏布局修改 */
+        .dialogue-footer { 
+            position: relative; flex-shrink: 0; width: 100%; min-height: 50px; /* 减小高度 */
+            display: flex; align-items: center; padding: 5px 15px; /* 减小padding */
+            box-sizing: border-box; background-color: #F7F7F7; border-top: 1px solid #E5E5EA; 
+            gap: 5px; /* 减小间距 */
+        }
+        #message-input { 
+            flex-grow: 1; height: 32px; /* 减小高度 */ padding: 0 12px; /* 减小padding */
+            border: none; border-radius: 16px; /* 更加圆润 */ background-color: #FFFFFF; color: #333; outline: none; 
+            font-size: 14px; /* 减小字号以适应更小的高度 */
+        }
+        .footer-icon-btn { 
+            background: none; border: none; font-size: 18px; /* 稍微减小字号以适应更小的高度 */ color: #5A6070; cursor: pointer;
+            padding: 0; display: flex; align-items: center; justify-content: center; 
+            width: 32px; height: 32px; /* 减小尺寸以适应更小的高度 */ border-radius: 50%; transition: transform 0.2s, background-color 0.2s; 
+        }
+        /* 按钮按压圆形效果 */
+        .footer-icon-btn:active {
+            transform: scale(0.9); /* 缩小 */
+            background-color: rgba(0, 0, 0, 0.1); /* 浅色背景 */
+            box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.1); /* 模拟圆形描边 */
+            transition: transform 0.1s ease-out, background-color 0.1s ease-out, box-shadow 0.1s ease-out;
+        }
+
+        #send-message-btn { 
+            padding: 6px 12px; /* 调整padding以适应新高度 */ border: none; border-radius: 16px; /* 更加圆润 */ background-color: #07C160;
+            color: white; cursor: pointer; font-size: 14px; /* 减小字号以适应更小的高度 */ height: 32px; /* 减小高度 */ flex-shrink: 0; 
+        }
+        #functions-menu { position: absolute; bottom: 100%; left: 0; right: 0; background-color: #F0F0F0;
+            border-top: 1px solid #E5E5EA; display: none; flex-direction: column; padding: 10px 0; }
+        .function-menu-item { padding: 12px 20px; font-size: 16px; color: #333; cursor: pointer; }
+        .function-menu-item:hover { background-color: #E5E5EA; }
+
+        /* --- 世界书 & 好友设置 --- */
+        .world-book-main { flex-grow: 1; padding: 10px 20px; box-sizing: border-box; overflow-y: auto; }
+        .world-book-tabs { display: flex; justify-content: space-around; background-color: rgba(var(--theme-base-color-rgb), 0.5);
+            border-radius: 10px; padding: 5px; margin-bottom: 20px; gap: 5px; }
+        .world-book-tabs .tab-button { flex: 1; padding: 10px; border: none; border-radius: 8px; background-color: transparent;
+            color: var(--global-font-color); font-size: 16px; cursor: pointer; transition: background-color 0.2s, color 0.2s; }
+        .world-book-tabs .tab-button.active { background-color: #007AFF; color: white; font-weight: 500; }
+        .world-book-tab-content { display: none; }
+        .world-book-tab-content.active { display: block; }
+        .tab-content-title { font-size: 16px; font-weight: 500; color: #D3D7E0; margin: 15px 0 10px 0; padding-bottom: 5px;
+            border-bottom: 1px solid rgba(var(--theme-base-color-rgb), 0.5); }
+        .world-book-list { display: flex; flex-direction: column; gap: 10px; }
+        .world-book-item { background-color: rgba(var(--theme-base-color-rgb), var(--global-opacity)); padding: 12px 15px;
+            border-radius: 10px; display: flex; justify-content: space-between; align-items: center;
+            font-size: 16px; color: var(--global-font-color); }
+        .world-book-item > div { display: flex; gap: 8px; }
+        .world-book-item button { padding: 6px 12px; border: none; border-radius: 6px; font-size: 13px;
+            cursor: pointer; transition: background-color 0.2s; }
+        .world-book-item .apply-btn { background-color: #007AFF; color: white; }
+        .world-book-item .edit-btn { background-color: #555; color: white; }
+        .world-book-item .delete-btn { background-color: #EA5455; color: white; }
+        .friend-settings-screen { background-color: #F7F7F7; color: #333; }
+        
+        /* 新增气泡自定义样式 */
+        .bubble-customization-section {
+            width: 100%; background: #F0F0F0; border-radius: 10px; padding: 15px;
+            display: flex; flex-direction: column; gap: 15px;
+            margin-bottom: 20px; /* Add margin for spacing */
+        }
+        .bubble-color-setting {
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .bubble-color-setting label {
+            font-size: 15px; color: #333; margin-bottom: 0; /* Override form-group label margin */
+        }
+        .bubble-preview-container {
+            border: 1px dashed #DCDCDC; border-radius: 8px; padding: 10px; background-color: #fff;
+        }
+        .preview-my-bubble {
+            background-color: #007AFF;
+            color: white;
+            border-bottom-right-radius: 4px;
+            border: 1px solid rgba(0, 0, 0, 0.1); /* 我的气泡描边 */
+        }
+        .preview-their-bubble {
+            background-color: #FFFFFF;
+            color: #333;
+            border: 1px solid #E5E5EA;
+            border-bottom-left-radius: 4px;
+        }
+        /* Make sure preview avatars are simple */
+        .bubble-preview-container .chat-avatar {
+            background-color: #ccc;
+        }
+        .bubble-preview-container .my-message .chat-avatar {
+             background-color: #007AFF; /* My default avatar color in preview */
+        }
+        .bubble-preview-container .their-message .chat-avatar {
+             background-color: #ccc; /* Their default avatar color in preview */
+        }
+
+
+        /* --- 微信界面样式 --- */
+        .wechat-container-screen { background: #EDEDED; color: #000; font-family: var(--global-font-family);
+            font-weight: 400; padding: 0; }
+        .wechat-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 15px;
+            height: 44px; background-color: #F7F7F7; border-bottom: 1px solid #DCDCDC; flex-shrink: 0;
+            box-sizing: border-box; color: #000; }
+        .wechat-header button { background: none; border: none; font-size: 16px; cursor: pointer; color: #000; }
+        .wechat-header #wechat-header-title { font-size: 18px; font-weight: 500; }
+        .wechat-header #wechat-header-actions { display: flex; align-items: center; min-width: 50px; justify-content: flex-end; }
+        .wechat-header #wechat-header-actions button { font-size: 24px; padding: 5px; }
+        #wechat-page-container { flex-grow: 1; overflow-y: auto; position: relative; }
+        .wechat-page { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow-y: auto; }
+        .wechat-page.active { display: block; }
+        #wechat-nav-bar { display: flex; height: 50px; background-color: #F7F7F7; border-top: 1px solid #DCDCDC; flex-shrink: 0; }
+        .wechat-nav-item { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            font-size: 10px; color: #777; cursor: pointer; }
+        .wechat-nav-item span { font-size: 22px; }
+        .wechat-nav-item.active { color: var(--wechat-theme-green); }
+
+        /* 聊天和通讯录列表样式 */
+        #wechat-chat-list-page #character-list, #wechat-contacts-page #wechat-contacts-list { margin-top: 0; padding: 0; } /* Remove gap from here, handled by wrapper */
+        #wechat-chat-list-page .character-item, #wechat-contacts-page .character-item {
+             /* Styles moved to .character-item within .character-item-wrapper */
+        }
+        #wechat-chat-list-page, #wechat-contacts-page { background-color: #FFFFFF; }
+        #wechat-chat-list-page .character-avatar, #wechat-contacts-page .character-avatar { border-radius: 8px; }
+        
+        /* 朋友圈样式 */
+        #wechat-moments-page { background-color: #FFFFFF; }
+        .moments-header { position: relative; margin-bottom: 40px; }
+        .moments-bg { width: 100%; height: 250px; background-color: #8A8FA0; background-size: cover; background-position: center; }
+        .moments-user-info { position: absolute; bottom: -20px; right: 15px; display: flex; align-items: center; gap: 10px; }
+        .moments-user-name { font-size: 16px; font-weight: 500; color: #FFF; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+        .moments-avatar { width: 70px; height: 70px; border-radius: 8px; border: 2px solid #FFF; background-color: #ccc;
+            background-size: cover; background-position: center; }
+        #moments-posts-container { padding-bottom: 20px; } /* 新增 */
+        .moment-post { display: flex; gap: 10px; padding: 15px; border-bottom: 1px solid #F0F0F0; } /* 新增 */
+        .moment-post-avatar { width: 40px; height: 40px; border-radius: 6px; flex-shrink: 0; } /* 新增 */
+        .moment-post-main { display: flex; flex-direction: column; gap: 8px; flex-grow: 1; } /* 新增 */
+        .moment-post-author { font-size: 16px; font-weight: 500; color: #576B95; } /* 新增 */
+        .moment-post-content { font-size: 15px; line-height: 1.5; word-wrap: break-word; } /* 新增 */
+        .moment-post-location { font-size: 12px; color: #888; } /* 新增 */
+        .moment-post-footer { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #888; } /* 新增 */
+        .moment-delete-btn { color: #576B95; cursor: pointer; } /* 新增 */
+        .moment-comments-section { background-color: #F7F7F7; border-radius: 4px; padding: 8px; margin-top: 10px; font-size: 14px; } /* 新增 */
+        .moment-comment { margin-bottom: 4px; } /* 新增 */
+        .moment-comment:last-child { margin-bottom: 0; } /* 新增 */
+        .comment-author { color: #576B95; font-weight: 500; } /* 新增 */
+
+        /* "我" 页面样式 */
+        #wechat-me-page { background-color: #F7F7F7; }
+        .me-profile-header { display: flex; align-items: center; gap: 20px; background-color: #FFFFFF;
+            padding: 40px 20px 20px 20px; margin-bottom: 10px; }
+        .me-avatar { width: 60px; height: 60px; border-radius: 8px; background-color: #ccc;
+            background-size: cover; background-position: center; flex-shrink: 0; }
+        .me-profile-info { display: flex; flex-direction: column; gap: 5px; }
+        .me-name { font-size: 20px; font-weight: 500; }
+        .me-id { font-size: 14px; color: #888; }
+        .me-options-list { background-color: #FFFFFF; }
+        .me-option-item { display: flex; justify-content: space-between; align-items: center; gap: 15px;
+            padding: 12px 20px; font-size: 16px; border-bottom: 1px solid #F0F0F0; cursor: pointer; }
+        .me-option-item:last-child { border-bottom: none; }
+        .me-option-item .option-label { display: flex; align-items: center; gap: 15px; }
+        .me-option-item .option-label span { font-size: 22px; }
+        .me-option-item .option-value { color: #888; font-size: 14px; }
+
+        /* 各种设置页 & 钱包页 */
+        .wechat-wallet-screen, .wechat-new-moment-screen, .wechat-select-friends-screen,
+        .wechat-visibility-settings-screen, .wechat-group-settings-screen {
+            background-color: #F7F7F7; color: #000; padding: 0; }
+        .simple-header { display: flex; align-items: center; padding: 10px 15px; height: 44px;
+            background-color: #F7F7F7; border-bottom: 1px solid #DCDCDC; flex-shrink: 0;
+            box-sizing: border-box; color: #000; position: relative; }
+        .simple-header button { background:none; border:none; font-size: 16px; color: #000; cursor: pointer; }
+        .simple-header .title { position: absolute; left: 50%; transform: translateX(-50%); font-size: 18px; font-weight: 500; }
+        .wallet-balance-card { background-color: var(--wechat-theme-green); color: #FFF; padding: 20px;
+            margin: 20px; border-radius: 10px; text-align: center; }
+        .new-moment-content { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; }
+        .new-moment-content textarea { width: 100%; height: 150px; border: none; outline: none; background: none;
+            resize: none; margin-bottom: 10px; }
+        .new-moment-content .me-options-list { margin-top: 10px; }
+        .select-friends-content { flex-grow: 1; overflow-y: auto; background-color: #FFF; }
+        .friend-select-item { display: flex; align-items: center; padding: 10px 15px; border-bottom: 1px solid #E5E5E5; }
+        .friend-select-item input[type="checkbox"] { width: 20px; height: 20px; margin-right: 15px; }
+        .visibility-options-list .me-option-item { justify-content: flex-start; }
+        .visibility-options-list input[type="radio"] { width: 20px; height: 20px; margin-right: 15px; }
+
+        /* --- 弹窗样式 --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6);
+            display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal { background: #FFFFFF; color: #333; padding: 25px; border-radius: 25px; width: 80%;
+            max-width: 320px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); text-align: left; }
+        .modal h3 { margin-top: 0; margin-bottom: 15px; font-weight: 600; }
+        .modal input[type="text"], .modal textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;
+            box-sizing: border-box; margin-bottom: 15px; background-color: #F7F7F7; color: #333; }
+        .modal textarea { resize: vertical; min-height: 100px; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+        .modal-actions button { padding: 8px 16px; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; }
+        .modal-method-switcher {
+            display: flex; margin-bottom: 15px; border: 1px solid #E5E5EA;
+            border-radius: 8px; overflow: hidden;
+        }
+        .modal-method-switcher button {
+            flex: 1; padding: 8px; border: none; background-color: #FFFFFF;
+            color: #333; cursor: pointer; transition: background-color 0.2s;
+        }
+        .modal-method-switcher button:first-child { border-right: 1px solid #E5E5EA; }
+        .modal-method-switcher button.active { background-color: #007AFF; color: white; }
+        
+        /* 通用反馈弹窗 (绿色成功提示) */
+        .feedback-modal-overlay { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%;
+            display: none; /* Initial state */
+            justify-content: center; 
+            align-items: center; 
+            z-index: 99999; /* 确保在最顶层，比所有其他 z-index 都高 */
+        }
+        .feedback-modal { 
+            background: #28C76F; /* 绿色背景 */ 
+            color: #FFFFFF; 
+            padding: 20px; 
+            border-radius: 15px;
+            width: auto; 
+            min-width: 150px; 
+            max-width: 80%; 
+            text-align: center; 
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); 
+            opacity: 0; 
+            transform: scale(0.9); 
+            transition: opacity 0.2s ease-out, transform 0.2s ease-out; /* Use ease-out for smoother hide */
+        }
+        .feedback-modal-overlay.visible { 
+            display: flex; 
+        }
+        .feedback-modal-overlay.visible .feedback-modal { 
+            opacity: 1; 
+            transform: scale(1); 
+        }
+        .feedback-modal.error { background-color: #EA5455; } /* 红色失败提示 */
+        .feedback-modal p { margin: 0; font-size: 16px; font-weight: 500; }
+    </style>
+</head>
+<body>
+
+    <!-- 主屏幕 -->
+    <section class="phone-screen">
+        <header class="status-bar"><div class="time"></div><div class="battery" id="battery"><div class="battery-fill" id="batteryFill"></div></div></header>
+        <div class="dynamic-island"><span>🎧</span><span id="dynamic-island-text">owo</span></div>
+        <main>
+            <div class="user-info">
+                <div class="avatar-container image-editable"><div class="avatar image-editable"></div></div>
+                <div class="user-name editable">自定义名字</div><div class="user-bio editable">自定义个性签名</div><div class="user-location editable">自定义位置</div>
+            </div>
+            <div class="widgets-apps">
+                <div class="widget image-editable">小组件</div>
+                <div class="apps">
+                    <div class="app-container" id="wechat-app-btn"><div class="app" id="home-app-icon-1">📱</div><span class="app-label">微信</span></div>
+                    <div class="app-container" id="world-book-app-btn"><div class="app" id="home-app-icon-2">📖</div><span class="app-label">世界书</span></div>
+                    <div class="app-container"><div class="app" id="home-app-icon-3">🗺️</div><span class="app-label">地图</span></div>
+                    <div class="app-container" id="settings-app-btn"><div class="app" id="home-app-icon-4">⚙️</div><span class="app-label">设置</span></div>
+                </div>
+            </div>
+        </main>
+        <nav class="nav-bar">
+            <button type="button" class="nav-app" id="api-settings-btn">API</button><button type="button" class="nav-app">导航2</button>
+            <button type="button" class="nav-app">导航3</button><button type="button" class="nav-app">导航4</button>
+        </nav>
+    </section>
+
+    <!-- API 设置界面 -->
+    <section class="api-settings-screen">
+        <header class="settings-header"><button id="back-to-home-from-api-btn">&lt; 返回</button><span class="title">API 设置</span></header>
+        <main>
+            <div class="theme-controls"><h4>连接设置</h4><div class="theme-control-item"><label for="api-url-input">API 地址</label><input type="text" id="api-url-input" class="api-input" placeholder="例如: https://api.openai.com"></div><div class="theme-control-item"><label for="api-key-input">API 密钥</label><input type="password" id="api-key-input" class="api-input" placeholder="请输入 API 密钥"></div></div>
+            <div class="theme-controls"><h4>模型选择</h4><div class="theme-control-item"><button id="fetch-models-btn" class="action-btn">获取模型列表</button></div><div class="theme-control-item"><label for="model-select">选择模型</label><select id="model-select" class="model-select"><option value="">请先获取模型列表</option></select></div><div class="action-buttons"><button id="api-save-btn" class="save-btn">保存设置</button></div></div>
+        </main>
+    </section>
+
+    <!-- 设置界面 -->
+    <section class="settings-screen">
+        <header class="settings-header"><button id="back-to-home-btn">&lt; 返回</button><span class="title">设置</span></header>
+        <main class="settings-list">
+            <div class="settings-item" id="wallpaper-setting-btn"><span>壁纸设置</span><span>&gt;</span></div><div class="settings-item" id="icon-setting-btn"><span>图标修改</span><span>&gt;</span></div><div class="settings-item" id="theme-setting-btn"><span>主题美化</span><span>&gt;</span></div><div class="settings-item" id="font-setting-btn"><span>自定义字体</span><span>&gt;</span></div>
+        </main>
+    </section>
+
+    <!-- 图标修改界面 -->
+    <section class="icon-settings-screen">
+        <header class="settings-header"><button id="back-to-settings-btn">&lt; 设置</button><span class="title">图标修改</span></header>
+        <main class="icon-edit-grid">
+            <div class="app icon-editable" id="icon-edit-1" data-icon-index="1">📱</div><div class="app icon-editable" id="icon-edit-2" data-icon-index="2">📖</div><div class="app icon-editable" id="icon-edit-3" data-icon-index="3">🗺️</div><div class="app icon-editable" id="icon-edit-4" data-icon-index="4">⚙️</div>
+        </main>
+    </section>
+
+    <!-- (新增) 主题美化界面 -->
+    <section class="theme-settings-screen">
+        <header class="settings-header"><button id="back-to-settings-from-theme-btn">&lt; 设置</button><span class="title">主题美化</span></header>
+        <main>
+            <div class="theme-controls">
+                <h4>全局主题</h4>
+                <div class="theme-control-item"><label for="theme-color-picker">自定义颜色</label><input type="color" id="theme-color-picker" value="#3A3F4A"></div>
+                <div class="theme-control-item"><label for="theme-opacity-slider">全局美化透明度</label><input type="range" id="theme-opacity-slider" min="0" max="1" step="0.05" value="0.7"></div>
+                <div class="action-buttons"><button id="theme-reset-btn" class="reset-btn">重置</button><button id="theme-save-btn" class="save-btn">保存</button></div>
+            </div>
+            <div class="theme-controls">
+                <h4>电池美化</h4>
+                <div class="theme-control-item"><label for="battery-fill-color-picker">内部颜色</label><input type="color" id="battery-fill-color-picker" value="#ADD8E6"></div>
+                <div class="theme-control-item"><label for="battery-fill-opacity-slider">内部透明度</label><input type="range" id="battery-fill-opacity-slider" min="0" max="1" step="0.05" value="1"></div>
+                <div class="theme-control-item"><label for="battery-border-color-picker">边框颜色</label><input type="color" id="battery-border-color-picker" value="#FFFFFF"></div>
+                <div class="theme-control-item"><label for="battery-border-opacity-slider">边框透明度</label><input type="range" id="battery-border-opacity-slider" min="0" max="1" step="0.05" value="1"></div>
+                <div class="action-buttons"><button id="battery-reset-btn" class="reset-btn">重置</button><button id="battery-save-btn" class="save-btn">保存</button></div>
+            </div>
+        </main>
+    </section>
+
+    <!-- (新增) 字体设置界面 -->
+    <section class="font-settings-screen">
+        <header class="settings-header"><button id="back-to-settings-from-font-btn">&lt; 设置</button><span class="title">自定义字体</span></header>
+        <main>
+            <div class="theme-controls">
+                <h4>字体来源</h4>
+                <div class="theme-control-item"><label for="font-file-input">本地上传 (.ttf, .otf)</label><input type="file" id="font-file-input" accept=".ttf,.otf,.woff,.woff2"></div>
+                <div class="theme-control-item"><label for="font-url-input">网络链接 (TTF链接)</label></div>
+                <input type="text" id="font-url-input" class="font-input" placeholder="在此粘贴字体文件链接...">
+            </div>
+            <div class="theme-controls">
+                <h4>字体样式</h4>
+                <div class="theme-control-item"><label for="font-color-picker">文字颜色</label><input type="color" id="font-color-picker" value="#D3D7E0"></div>
+                <div class="theme-control-item"><label for="font-weight-slider">文字粗细</label><input type="range" id="font-weight-slider" min="100" max="900" step="100" value="300"></div>
+                <div class="action-buttons"><button id="font-reset-btn" class="reset-btn">重置</button><button id="font-save-btn" class="save-btn">保存</button></div>
+            </div>
+        </main>
+    </section>
+
+    <!-- 角色设定界面 -->
+    <section class="character-settings-screen" id="character-settings-screen">
+        <header class="settings-header"><button id="back-to-char-list-btn">&lt; 返回</button><span class="title">角色设定</span></header>
+        <main>
+            <form class="character-settings-form" onsubmit="return false;">
+                <h3 style="color: #333; text-align: center; width: 100%; margin: 0 0 10px 0;">好友信息设定</h3><div id="char-avatar-preview" class="avatar-preview"></div><input type="file" id="char-avatar-input" accept="image/*" style="display: none;"><div class="form-group"><label for="char-name-input">好友名字</label><input type="text" id="char-name-input" placeholder="输入好友的名字"></div><div class="form-group"><label for="char-setting-input">好友设定</label><textarea id="char-setting-input" placeholder="输入好友的详细设定..."></textarea></div><div class="form-group"><label for="char-world-select">选择世界书 (对好友生效)</label><select id="char-world-select"><option value="none">无</option></select></div>
+                <hr style="width: 100%; border-color: #E5E5EA; margin: 20px 0;">
+                <h3 style="color: #333; text-align: center; width: 100%; margin: 0 0 10px 0;">我的信息设定</h3><div id="my-avatar-preview" class="avatar-preview"></div><input type="file" id="my-avatar-input" accept="image/*" style="display: none;"><div class="form-group"><label for="my-name-input">我的名字</label><input type="text" id="my-name-input" placeholder="输入你的名字"></div><div class="form-group"><label for="my-setting-input">我的设定</label><textarea id="my-setting-input" placeholder="输入你自己的详细设定..."></textarea></div>
+                <div class="form-actions"><button type="button" id="cancel-char-btn" class="reset-btn">取消</button><button type="button" id="save-char-btn" class="save-btn">保存</button></div>
+            </form>
+        </main>
+    </section>
+
+    <!-- 微信-对话界面 -->
+    <section class="dialogue-screen">
+        <header class="settings-header" style="padding: 0 20px;"><button id="back-to-chat-list-btn">&lt; 返回</button><span class="title" id="dialogue-character-name"></span><button id="dialogue-settings-btn">...</button></header>
+        <main id="dialogue-content"></main>
+        <!-- 对话底部导航栏布局修改 -->
+        <footer class="dialogue-footer">
+            <div id="functions-menu"><div class="function-menu-item" id="menu-voice-btn">语音功能</div></div>
+            <button id="functions-toggle-btn" class="footer-icon-btn">🐾</button>
+            <input type="text" id="message-input" placeholder="输入消息...">
+            <button id="send-message-btn">发送</button>
+            <button id="ai-reply-btn" class="footer-icon-btn">📞</button>
+        </footer>
+    </section>
+
+    <!-- 微信-好友设置界面 -->
+    <section class="friend-settings-screen">
+        <header class="settings-header"><button id="back-to-dialogue-from-friend-settings-btn">&lt; 返回</button><span class="title" id="friend-settings-character-name">好友设置</span></header>
+        <main style="padding: 20px; box-sizing: border-box; overflow-y: auto;">
+            <div class="character-settings-form">
+                <div class="form-group"><label for="friend-local-world-select">选择局部世界书</label><select id="friend-local-world-select"><option value="none">无</option></select></div>
+                <hr style="width: 100%; border-color: #E5E5EA; margin: 20px 0;">
+
+                <!-- 新增气泡自定义样式 -->
+                <h3 style="color: #333; text-align: center; width: 100%; margin: 0 0 10px 0;">气泡样式定制</h3>
+                <div class="bubble-customization-section">
+                    <!-- 我的气泡颜色 -->
+                    <div class="bubble-color-setting">
+                        <label for="my-bubble-color-picker">我的气泡颜色:</label>
+                        <input type="color" id="my-bubble-color-picker" value="#007AFF">
+                    </div>
+                    <!-- 对面气泡颜色 -->
+                    <div class="bubble-color-setting">
+                        <label for="their-bubble-color-picker">对面气泡颜色:</label>
+                        <input type="color" id="their-bubble-color-picker" value="#FFFFFF">
+                    </div>
+
+                    <!-- 实时气泡预览 -->
+                    <div class="bubble-preview-container">
+                        <p style="font-size: 14px; color: #8A8FA0; margin-bottom: 10px;">实时气泡预览:</p>
+                        <div class="message-row their-message">
+                            <div class="chat-avatar" style="background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2240%22%20height%3D%2240%22%20viewBox%3D%220%200%2040%2040%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%2240%22%20height%3D%2240%22%20rx%3D%2220%22%20fill%3D%22%23ccc%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2255%25%22%20font-family%3D%22sans-serif%22%20font-size%3D%2216%22%20fill%3D%22white%22%20text-anchor%3D%22middle%22%20dominant-baseline%3D%22middle%22%3EA%3C%2Ftext%3E%3C%2Fsvg%3E')"></div>
+                            <div class="chat-bubble preview-their-bubble" id="preview-their-bubble" style="border: 1px solid #E5E5EA;">对方的消息</div>
+                        </div>
+                        <div class="message-row my-message" style="margin-top: 10px;">
+                            <div class="chat-bubble preview-my-bubble" id="preview-my-bubble">我的消息</div>
+                            <div class="chat-avatar" style="background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2240%22%20height%3D%2240%22%20viewBox%3D%220%200%2040%2040%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%2240%22%20height%3D%2240%22%20rx%3D%2220%22%20fill%3D%22%23007AFF%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2255%25%22%20font-family%3D%22sans-serif%22%20font-size%3D%2216%22%20fill%3D%22white%22%20text-anchor%3D%22middle%22%20dominant-baseline%3D%22middle%22%3EM%3C%2Ftext%3E%3C%2Fsvg%3E')"></div>
+                        </div>
+                    </div>
+
+                    <!-- 自定义CSS输入 -->
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label for="custom-bubble-css">自定义气泡CSS (高级):</label>
+                        <textarea id="custom-bubble-css" placeholder="/* 我的气泡 */
+.my-bubble {
+    background-color: #62C462; /* 浅绿色 */
+    border-radius: 15px 5px 15px 15px; /* 右上角小尖角 */
+}
+/* 对方气泡 */
+.their-bubble {
+    background-color: #E0E0E0; /* 浅灰色 */
+    border-radius: 5px 15px 15px 15px; /* 左上角小尖角 */
+    border: none; /* 移除默认边框 */
+}
+/* 提示: 可自定义颜色、圆角、边框、字体等 */"></textarea>
+                        <div class="action-buttons" style="justify-content: flex-start; margin-top: 10px;">
+                            <button id="copy-bubble-css-btn" class="action-btn" style="background-color: #555;">加载示例CSS</button>
+                            <button id="clear-bubble-css-btn" class="reset-btn" style="background-color: #EA5455;">清除自定义CSS</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- 结束：气泡样式定制区域 -->
+
+                <div class="form-actions">
+                    <button type="button" id="edit-friend-info-btn" class="action-btn" style="background-color: #555;">编辑资料</button>
+                    <button type="button" id="clear-dialogue-btn" class="reset-btn" style="background-color: #EA5455;">一键清除对话</button>
+                </div>
+            </div>
+        </main>
+    </section>
+
+    <!-- 世界书界面 -->
+    <section class="world-book-screen">
+        <header class="settings-header"><button id="back-to-home-from-world-book-btn">&lt; 返回</button><span class="title">世界书</span><button id="create-world-book-btn" data-type="global" style="color:#007AFF;">创建全局世界书</button></header>
+        <main class="world-book-main"><div class="world-book-tabs"><button id="show-global-world-books-btn" class="active tab-button" data-type="global">全局世界书</button><button id="show-local-world-books-btn" class="tab-button" data-type="local">局部世界书</button></div><div id="global-world-books-content" class="world-book-tab-content active"><p class="tab-content-title">已创建的全局世界书</p><div id="global-world-books-list" class="world-book-list"></div></div><div id="local-world-books-content" class="world-book-tab-content"><p class="tab-content-title">已创建的局部世界书</p><div id="local-world-books-list" class="world-book-list"></div></div></main>
+    </section>
+
+    <!-- ==================================================== -->
+    <!-- ============ 微信功能界面 START ==================== -->
+    <!-- ==================================================== -->
+
+    <section class="wechat-container-screen">
+        <header class="wechat-header"><button id="wechat-back-to-home-btn">&lt; 返回</button><span id="wechat-header-title">微信</span><div id="wechat-header-actions"></div></header>
+        <main id="wechat-page-container">
+            <div id="wechat-chat-list-page" class="wechat-page"><div id="character-list"></div></div>
+            <div id="wechat-contacts-page" class="wechat-page"><div id="wechat-contacts-list"></div></div>
+            <div id="wechat-moments-page" class="wechat-page">
+                <div class="moments-header"><div class="moments-bg image-editable" id="moments-bg-editable"></div><div class="moments-user-info"><span class="moments-user-name editable" id="moments-user-name-editable"></span><div class="moments-avatar image-editable" id="moments-avatar-editable"></div></div></div>
+                <div id="moments-posts-container"></div>
+            </div>
+            <div id="wechat-me-page" class="wechat-page">
+                <div class="me-profile-header"><div class="me-avatar image-editable" id="me-avatar-editable"></div><div class="me-profile-info"><span class="me-name editable" id="me-name-editable"></span><span class="me-id">微信号: <span class="editable" id="me-id-editable"></span></span></div></div>
+                <div class="me-options-list"><div class="me-option-item" id="me-wallet-btn"><div class="option-label"><span>💰</span> 钱包</div></div></div>
+            </div>
+        </main>
+        <nav id="wechat-nav-bar"><div class="wechat-nav-item active" data-page="chat-list"><span>💬</span><div>微信</div></div><div class="wechat-nav-item" data-page="contacts"><span>👥</span><div>通讯录</div></div><div class="wechat-nav-item" data-page="moments"><span>🌐</span><div>朋友圈</div></div><div class="wechat-nav-item" data-page="me"><span>👤</span><div>我</div></div></nav>
+    </section>
+
+    <section class="wechat-wallet-screen">
+        <header class="simple-header"><button id="wechat-wallet-back-btn">&lt; 返回</button><span class="title">钱包</span></header>
+        <main><div class="wallet-balance-card"><p>我的余额</p><h2>¥ 123.45</h2></div></main>
+    </section>
+
+    <section class="wechat-new-moment-screen">
+        <header class="simple-header"><button id="wechat-cancel-moment-btn">取消</button><span class="title">发表朋友圈</span><button id="wechat-post-moment-btn" style="color: var(--wechat-theme-green); font-weight: 500;">发表</button></header>
+        <main class="new-moment-content"><textarea id="new-moment-textarea" placeholder="这一刻的想法..."></textarea><div class="me-options-list"><div class="me-option-item" id="moment-location-btn"><div class="option-label"><span>📍</span> 所在位置</div><span class="option-value" id="moment-location-value">不显示位置</span></div><div class="me-option-item" id="moment-visibility-btn"><div class="option-label"><span>👥</span> 谁可以看</div><span class="option-value" id="moment-visibility-value">公开</span></div></div></main>
+    </section>
+    
+    <section class="wechat-visibility-settings-screen">
+        <header class="simple-header"><button id="wechat-visibility-back-btn">&lt; 返回</button><span class="title">谁可以看</span></header>
+        <main style="padding-top: 20px;"><div class="me-options-list visibility-options-list"><label class="me-option-item" for="visibility-public"><input type="radio" name="visibility" id="visibility-public" value="public" checked><div class="option-label"><span>🌍</span> 公开</div></label><div class="me-option-item" id="visibility-show-some"><div class="option-label"><span>✅</span> 部分可见</div><span>&gt;</span></div><div class="me-option-item" id="visibility-hide-some"><div class="option-label"><span>🚫</span> 不给谁看</div><span>&gt;</span></div></div></main>
+    </section>
+
+    <section class="wechat-select-friends-screen">
+        <header class="simple-header"><button id="wechat-cancel-select-friends-btn">取消</button><span class="title" id="select-friends-title">选择好友</span><button id="wechat-confirm-select-friends-btn" style="color: var(--wechat-theme-green); font-weight: 500;">完成</button></header>
+        <main class="select-friends-content" id="wechat-select-friends-list"></main>
+    </section>
+
+    <section class="wechat-group-settings-screen">
+        <header class="simple-header"><button id="group-settings-back-btn">&lt; 返回</button><span class="title">群聊设置</span></header>
+        <main style="padding-top: 20px;">
+            <div class="me-options-list">
+                <div class="me-option-item" id="group-settings-name"><div class="option-label">群聊名称</div><span class="option-value" id="group-settings-name-value"></span></div>
+                <div class="me-option-item" id="group-settings-avatar"><div class="option-label">更换群头像</div><div class="character-avatar" id="group-settings-avatar-preview" style="width:40px; height:40px; border-radius:6px;"></div></div>
+                <div class="me-option-item" id="group-settings-admin"><div class="option-label">设置管理员</div><span class="option-value" id="group-settings-admin-value">未设置</span></div>
+                <div class="me-option-item" id="group-settings-worldbook">
+                    <div class="option-label">局部世界书</div>
+                    <select id="group-local-world-select" class="model-select" style="max-width: 150px; background-color: transparent; border: none; text-align: right;"></select>
+                </div>
+            </div>
+        </main>
+    </section>
+
+    <!-- ==================================================== -->
+    <!-- ============= 微信功能界面 END ===================== -->
+    <!-- ==================================================== -->
+
+    <!-- 各种弹窗 -->
+    <div class="modal-overlay" id="textModalOverlay"><div class="modal"><h3 id="text-modal-title"></h3><input type="text" id="modal-input"><div class="modal-actions"><button id="text-cancel-btn">取消</button><button id="text-save-btn" class="save-btn">保存</button></div></div></div>
+    <div class="modal-overlay" id="imageModalOverlay"><div class="modal"><h3>更换图片</h3><div class="modal-method-switcher"><button id="method-file-btn" class="active">本地上传</button><button id="method-url-btn">网络链接</button></div><div id="file-upload-section"><input type="file" id="image-input" accept="image/*"></div><div id="url-input-section" style="display: none;"><input type="text" id="image-url-input" placeholder="请输入图片链接..."></div><div class="modal-actions"><button id="image-cancel-btn">取消</button><button id="image-save-btn" class="save-btn">确认</button></div></div></div>
+    
+    <!-- 修复/新增：通用反馈弹窗的HTML结构 -->
+    <div class="feedback-modal-overlay" id="feedbackModalOverlay">
+        <div class="feedback-modal" id="feedbackModal">
+            <p id="feedbackMessage"></p>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="confirmationModalOverlay"><div class="modal"><h3 id="confirmation-title">确认操作</h3><p id="confirmation-message"></p><div class="modal-actions"><button id="confirm-cancel-btn">取消</button><button id="confirm-action-btn" class="save-btn">确认</button></div></div></div>
+    <div class="modal-overlay" id="worldBookModalOverlay"><div class="modal"><h3 id="world-book-modal-title">创建世界书</h3><input type="text" id="world-book-name-input" placeholder="世界书名称"><textarea id="world-book-content-input" placeholder="世界书内容..."></textarea><div class="modal-actions"><button id="world-book-cancel-btn">取消</button><button id="world-book-save-btn" class="save-btn">保存</button></div></div></div>
+    <div class="modal-overlay" id="voiceTextModalOverlay"><div class="modal"><h3>语音文字</h3><p id="voice-text-content" style="white-space: pre-wrap; word-wrap: break-word; max-height: 40vh; overflow-y: auto;"></p><div class="modal-actions"><button id="voice-text-close-btn" class="save-btn">关闭</button></div></div></div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // --- 基础功能 & 屏幕切换 ---
+            const dynamicIsland = document.querySelector('.dynamic-island');
+            dynamicIsland.addEventListener('click', () => { dynamicIsland.classList.add('clicked'); setTimeout(() => dynamicIsland.classList.remove('clicked'), 200); });
+            function updateTime() { document.querySelector('.time').textContent = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }); }
+            setInterval(updateTime, 1000); updateTime();
+
+            const screens = {
+                phone: document.querySelector('.phone-screen'),
+                settings: document.querySelector('.settings-screen'),
+                iconSettings: document.querySelector('.icon-settings-screen'),
+                themeSettings: document.querySelector('.theme-settings-screen'), // 新增
+                fontSettings: document.querySelector('.font-settings-screen'), // 新增
+                characterSettings: document.getElementById('character-settings-screen'),
+                dialogue: document.querySelector('.dialogue-screen'),
+                worldBook: document.querySelector('.world-book-screen'),
+                friendSettings: document.querySelector('.friend-settings-screen'),
+                apiSettings: document.querySelector('.api-settings-screen'),
+                wechatContainer: document.querySelector('.wechat-container-screen'),
+                wechatWallet: document.querySelector('.wechat-wallet-screen'),
+                wechatNewMoment: document.querySelector('.wechat-new-moment-screen'),
+                wechatSelectFriends: document.querySelector('.wechat-select-friends-screen'),
+                wechatVisibilitySettings: document.querySelector('.wechat-visibility-settings-screen'),
+                wechatGroupSettings: document.querySelector('.wechat-group-settings-screen'),
+            };
+            const showScreen = (screenName) => { Object.values(screens).forEach(s => s.style.display = 'none'); if(screens[screenName]) screens[screenName].style.display = 'flex'; };
+            
+            // (更新) 设置相关的屏幕切换
+            document.getElementById('settings-app-btn').addEventListener('click', () => showScreen('settings'));
+            document.getElementById('back-to-home-btn').addEventListener('click', () => showScreen('phone'));
+            document.getElementById('icon-setting-btn').addEventListener('click', () => showScreen('iconSettings'));
+            document.getElementById('back-to-settings-btn').addEventListener('click', () => showScreen('settings'));
+            document.getElementById('theme-setting-btn').addEventListener('click', () => showScreen('themeSettings'));
+            document.getElementById('back-to-settings-from-theme-btn').addEventListener('click', () => showScreen('settings'));
+            document.getElementById('font-setting-btn').addEventListener('click', () => showScreen('fontSettings'));
+            document.getElementById('back-to-settings-from-font-btn').addEventListener('click', () => showScreen('settings'));
+            document.getElementById('back-to-char-list-btn').addEventListener('click', () => { showScreen('wechatContainer'); renderWechatPage('chat-list'); }); // 新增返回角色列表按钮
+            
+            document.getElementById('world-book-app-btn').addEventListener('click', () => { renderWorldBooks(); showScreen('worldBook'); });
+            document.getElementById('back-to-home-from-world-book-btn').addEventListener('click', () => showScreen('phone'));
+            document.getElementById('back-to-dialogue-from-friend-settings-btn').addEventListener('click', () => showScreen('dialogue'));
+            document.getElementById('cancel-char-btn').addEventListener('click', () => { showScreen('wechatContainer'); renderWechatPage(currentWechatPage); resetCharacterForm(); });
+            document.getElementById('back-to-chat-list-btn').addEventListener('click', () => { showScreen('wechatContainer'); renderWechatPage('chat-list'); activeCharacter = null; });
+            document.getElementById('dialogue-settings-btn').addEventListener('click', () => {
+                if (!activeCharacter) return;
+                if (activeCharacter.isGroup) { renderGroupSettings(); showScreen('wechatGroupSettings'); } 
+                else { renderFriendSettings(); showScreen('friendSettings'); }
+            });
+            document.getElementById('api-settings-btn').addEventListener('click', () => showScreen('apiSettings'));
+            document.getElementById('back-to-home-from-api-btn').addEventListener('click', () => showScreen('phone'));
+
+            // --- 文本修改弹窗逻辑 ---
+            const textModalOverlay = document.getElementById('textModalOverlay');
+            const textModalTitle = document.getElementById('text-modal-title');
+            const modalInput = document.getElementById('modal-input');
+            const textSaveBtn = document.getElementById('text-save-btn');
+            const textCancelBtn = document.getElementById('text-cancel-btn');
+            let currentEditingElement = null;
+            let onTextSaveCallback = null;
+
+            function openTextEditor(element, title = "修改信息", callback = null, initialValue = null) { // Added initialValue parameter
+                currentEditingElement = element; onTextSaveCallback = callback;
+                textModalTitle.textContent = title;
+                modalInput.value = initialValue !== null ? initialValue : (element && (element.textContent.trim() === '不显示位置' || element.textContent.trim() === '未设置')) ? '' : (element ? element.textContent.trim() : '');
+                textModalOverlay.style.display = 'flex'; modalInput.focus();
+            }
+            // Removed direct event listeners here to avoid interference with specific editable elements
+            // The specific .editable elements are handled individually elsewhere.
+            
+            textSaveBtn.onclick = () => {
+                try {
+                    if (onTextSaveCallback) { onTextSaveCallback(modalInput.value); } 
+                    else if (currentEditingElement) {
+                        currentEditingElement.textContent = modalInput.value;
+                        if (currentEditingElement.id === 'moments-user-name-editable') wechatData.moments.name = modalInput.value;
+                        else if (currentEditingElement.id === 'me-name-editable') wechatData.me.name = modalInput.value;
+                        else if (currentEditingElement.id === 'me-id-editable') wechatData.me.id = modalInput.value;
+                        saveWechatDataToLocalStorage(); updateAllWechatNames(wechatData.me.name);
+                    }
+                } finally { closeTextModal(); }
+            };
+            textCancelBtn.onclick = () => closeTextModal();
+            textModalOverlay.addEventListener('click', (e) => { if (e.target === textModalOverlay) closeTextModal(); });
+            function closeTextModal() { textModalOverlay.style.display = 'none'; currentEditingElement = null; onTextSaveCallback = null; }
+            
+            // --- 图片上传弹窗逻辑 (已整合壁纸和图标修改) ---
+            const imageModalOverlay = document.getElementById('imageModalOverlay');
+            const imageInput = document.getElementById('image-input');
+            const imageUrlInput = document.getElementById('image-url-input');
+            const imageSaveBtn = document.getElementById('image-save-btn');
+            const imageCancelBtn = document.getElementById('image-cancel-btn');
+            const methodFileBtn = document.getElementById('method-file-btn');
+            const methodUrlBtn = document.getElementById('method-url-input'); // Changed to input directly
+            const fileUploadSection = document.getElementById('file-upload-section');
+            const urlInputSection = document.getElementById('url-input-section');
+            let newImageFromFile = null;
+            let editTarget = { type: null, element: null, index: null, wechatTarget: null };
+
+            const setupImageEditor = (type, element = null, index = null, wechatTarget = null) => {
+                editTarget = { type, element, index, wechatTarget };
+                imageModalOverlay.style.display = 'flex';
+            };
+
+            // 监听所有可编辑图片的点击
+            document.querySelectorAll('.image-editable').forEach(el => el.addEventListener('click', (e) => {
+                e.stopPropagation(); let wechatTarget = null;
+                if (el.id === 'moments-bg-editable') wechatTarget = 'moments-bg';
+                else if (el.id === 'moments-avatar-editable') wechatTarget = 'moments-avatar';
+                else if (el.id === 'me-avatar-editable') wechatTarget = 'me-avatar';
+                else if (el.id === 'group-settings-avatar-preview') wechatTarget = 'group-avatar';
+                setupImageEditor('element', el, null, wechatTarget);
+            }));
+            // 监听设置里的壁纸和图标按钮
+            document.getElementById('wallpaper-setting-btn').addEventListener('click', () => setupImageEditor('wallpaper'));
+            document.querySelectorAll('.icon-editable').forEach(icon => icon.addEventListener('click', () => setupImageEditor('icon', null, icon.dataset.iconIndex)));
+
+            methodFileBtn.addEventListener('click', () => { methodFileBtn.classList.add('active'); methodUrlBtn.classList.remove('active'); fileUploadSection.style.display = 'block'; urlInputSection.style.display = 'none'; });
+            // NOTE: There was a typo here, methodUrlBtn was image-url-input. Corrected to actual button.
+            // Assuming there's a button for URL method, if not, you'll need to add one in HTML.
+            // For now, I'll use imageUrlInput as the trigger, if there's no specific button.
+            const methodUrlButton = document.getElementById('method-url-btn'); // Assuming this exists or will be added.
+            if (methodUrlButton) {
+                methodUrlButton.addEventListener('click', () => {
+                    methodUrlButton.classList.add('active');
+                    methodFileBtn.classList.remove('active');
+                    fileUploadSection.style.display = 'none';
+                    urlInputSection.style.display = 'block';
+                });
+            } else { // Fallback if no specific button, using the input itself as a "trigger" for UI mode
+                imageUrlInput.addEventListener('focus', () => {
+                    if (methodFileBtn.classList.contains('active')) {
+                        methodFileBtn.classList.remove('active');
+                    }
+                    // No 'active' class to add to an input, just ensure correct section is shown
+                    fileUploadSection.style.display = 'none';
+                    urlInputSection.style.display = 'block';
+                });
+            }
+
+
+            imageInput.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (re) => { newImageFromFile = re.target.result; }; reader.readAsDataURL(file); } else { newImageFromFile = null; }});
+            
+            imageSaveBtn.addEventListener('click', () => {
+                const finalImageUrl = methodFileBtn.classList.contains('active') ? newImageFromFile : imageUrlInput.value.trim();
+                if (!finalImageUrl) { closeImageModal(); return; }
+
+                if (editTarget.wechatTarget) {
+                    switch(editTarget.wechatTarget) {
+                        case 'moments-bg': wechatData.moments.bg = finalImageUrl; break;
+                        case 'moments-avatar': wechatData.moments.avatar = finalImageUrl; break;
+                        case 'me-avatar': wechatData.me.avatar = finalImageUrl; break;
+                        case 'group-avatar': if (activeCharacter) { activeCharacter.avatar = finalImageUrl; saveCharactersToLocalStorage(); renderGroupSettings(); } break;
+                    }
+                    saveWechatDataToLocalStorage(); renderWechatPage(currentWechatPage);
+                }
+
+                if (editTarget.type === 'wallpaper') { Object.values(screens).forEach(s => s.style.backgroundImage = `url(${finalImageUrl})`); }
+                else if (editTarget.type === 'icon' && editTarget.index) { 
+                    const homeIcon = document.getElementById(`home-app-icon-${editTarget.index}`); 
+                    const settingsIcon = document.getElementById(`icon-edit-${editTarget.index}`); 
+                    if (homeIcon) { homeIcon.style.backgroundImage = `url(${finalImageUrl})`; homeIcon.textContent = ''; } 
+                    if (settingsIcon) { settingsIcon.style.backgroundImage = `url(${finalImageUrl})`; settingsIcon.textContent = ''; } 
+                }
+                else if (editTarget.type === 'element' && editTarget.element) { 
+                    editTarget.element.style.backgroundImage = `url(${finalImageUrl})`; 
+                    if (editTarget.element.classList.contains('widget')) editTarget.element.textContent = ''; 
+                }
+                closeImageModal();
+            });
+
+            imageCancelBtn.addEventListener('click', closeImageModal);
+            function closeImageModal() { imageModalOverlay.style.display = 'none'; imageInput.value = ''; imageUrlInput.value = ''; newImageFromFile = null; editTarget = { type: null, element: null, index: null, wechatTarget: null }; methodFileBtn.click(); }
+            
+            // --- 主题/字体/电池美化 ---
+            const root = document.documentElement; const themeColorPicker = document.getElementById('theme-color-picker'); const themeOpacitySlider = document.getElementById('theme-opacity-slider'); const batteryFillColorPicker = document.getElementById('battery-fill-color-picker'); const batteryFillOpacitySlider = document.getElementById('battery-fill-opacity-slider'); const batteryBorderColorPicker = document.getElementById('battery-border-color-picker'); const batteryBorderOpacitySlider = document.getElementById('battery-border-opacity-slider'); const hexToRgb = (hex) => { const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex); return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : null; }; const applyThemeColor = (color) => { const rgb = hexToRgb(color); root.style.setProperty('--theme-base-color', color); root.style.setProperty('--theme-secondary-color', color); if (rgb) root.style.setProperty('--theme-base-color-rgb', rgb); }; const applyGlobalOpacity = (opacity) => root.style.setProperty('--global-opacity', opacity); const applyBatteryStyle = (color, opacity, property) => { const rgb = hexToRgb(color); if(rgb) root.style.setProperty(property, `rgba(${rgb}, ${opacity})`); }; themeColorPicker.addEventListener('input', (e) => applyThemeColor(e.target.value)); themeOpacitySlider.addEventListener('input', (e) => applyGlobalOpacity(e.target.value)); batteryFillColorPicker.addEventListener('input', () => applyBatteryStyle(batteryFillColorPicker.value, batteryFillOpacitySlider.value, '--battery-fill-color')); batteryFillOpacitySlider.addEventListener('input', () => applyBatteryStyle(batteryFillColorPicker.value, batteryFillOpacitySlider.value, '--battery-fill-color')); batteryBorderColorPicker.addEventListener('input', () => applyBatteryStyle(batteryBorderColorPicker.value, batteryBorderOpacitySlider.value, '--battery-border-color')); batteryBorderOpacitySlider.addEventListener('input', () => applyBatteryStyle(batteryBorderColorPicker.value, batteryBorderOpacitySlider.value, '--battery-border-color')); document.getElementById('theme-save-btn').addEventListener('click', () => { localStorage.setItem('savedTheme', JSON.stringify({ color: themeColorPicker.value, opacity: themeOpacitySlider.value })); showFeedbackModal('全局主题已保存！'); }); document.getElementById('battery-save-btn').addEventListener('click', () => { localStorage.setItem('savedBatteryTheme', JSON.stringify({ fillColor: batteryFillColorPicker.value, fillOpacity: batteryFillOpacitySlider.value, borderColor: batteryBorderColorPicker.value, borderOpacity: batteryBorderOpacitySlider.value })); showFeedbackModal('电池主题已保存！'); }); document.getElementById('theme-reset-btn').addEventListener('click', () => { if (confirm('确定要重置为默认主题吗？')) { localStorage.removeItem('savedTheme'); location.reload(); } }); document.getElementById('battery-reset-btn').addEventListener('click', () => { if (confirm('确定要重置为默认电池样式吗？')) { localStorage.removeItem('savedBatteryTheme'); location.reload(); } }); const fontFileInput = document.getElementById('font-file-input'); const fontUrlInput = document.getElementById('font-url-input'); const fontColorPicker = document.getElementById('font-color-picker'); const fontWeightSlider = document.getElementById('font-weight-slider'); const customFontStyleBlock = document.getElementById('custom-font-style-block'); let currentFontSettings = { source: null, value: null }; const applyFont = (source, value, color, weight) => { if (value) { customFontStyleBlock.innerHTML = `@font-face { font-family: 'custom-user-font'; src: url('${value}'); }`; root.style.setProperty('--global-font-family', "'custom-user-font', -apple-system, BlinkMacSystemFont, sans-serif"); currentFontSettings = { source, value }; } root.style.setProperty('--global-font-color', color); root.style.setProperty('--global-font-weight', weight); }; fontFileInput.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (re) => { fontUrlInput.value = ''; applyFont('file', re.target.result, fontColorPicker.value, fontWeightSlider.value); }; reader.readAsDataURL(file); } }); fontUrlInput.addEventListener('blur', () => { if(fontUrlInput.value.trim()){ fontFileInput.value = ''; applyFont('url', fontUrlInput.value.trim(), fontColorPicker.value, fontWeightSlider.value); } }); fontColorPicker.addEventListener('input', (e) => root.style.setProperty('--global-font-color', e.target.value)); fontWeightSlider.addEventListener('input', (e) => root.style.setProperty('--global-font-weight', e.target.value)); document.getElementById('font-save-btn').addEventListener('click', () => { if (!currentFontSettings.source && !fontUrlInput.value.trim()) { showFeedbackModal('请先选择一个字体文件或输入链接！', false); return; } if(fontUrlInput.value.trim() && !currentFontSettings.source) applyFont('url', fontUrlInput.value.trim(), fontColorPicker.value, fontWeightSlider.value); const settingsToSave = { ...currentFontSettings, color: fontColorPicker.value, weight: fontWeightSlider.value }; localStorage.setItem('savedFontSettings', JSON.stringify(settingsToSave)); showFeedbackModal('字体设置已保存！'); }); document.getElementById('font-reset-btn').addEventListener('click', () => { if (confirm('确定要重置为默认字体吗？')) { localStorage.removeItem('savedFontSettings'); location.reload(); } });
+
+            // --- 弹窗与反馈 (修复和优化) ---
+            const confirmationModalOverlay = document.getElementById('confirmationModalOverlay');
+            const confirmationMessageEl = document.getElementById('confirmation-message');
+            const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
+            const confirmActionBtn = document.getElementById('confirm-action-btn');
+            function showConfirmationModal(message, onConfirm) { 
+                confirmationMessageEl.textContent = message; 
+                confirmationModalOverlay.style.display = 'flex'; 
+                confirmActionBtn.onclick = function() { 
+                    if(onConfirm) onConfirm(); 
+                    hideConfirmationModal(); 
+                }; 
+            }
+            function hideConfirmationModal() { 
+                confirmationModalOverlay.style.display = 'none'; 
+                confirmActionBtn.onclick = null; 
+            }
+            confirmCancelBtn.onclick = hideConfirmationModal;
+            
+            const feedbackModalOverlay = document.getElementById('feedbackModalOverlay');
+            const feedbackModal = document.getElementById('feedbackModal');
+            const feedbackMessage = document.getElementById('feedbackMessage');
+            
+            // 修复：重写 showFeedbackModal 函数以确保动画效果正常触发
+            // 之前的问题可能是因为 display: none -> display: flex 和 opacity: 0 -> opacity: 1 的变化在同一次渲染中完成，导致浏览器跳过了过渡动画。
+            // 使用 requestAnimationFrame 可以确保 display 属性先生效，然后在下一帧再添加 .visible 类来触发动画。
+            function showFeedbackModal(message, isSuccess = true, callback = null) {
+                feedbackMessage.textContent = message;
+                feedbackModal.classList.remove('error'); // 先重置状态
+                if (!isSuccess) {
+                    feedbackModal.classList.add('error');
+                }
+
+                // 1. 先让遮罩层显示出来
+                feedbackModalOverlay.style.display = 'flex';
+                
+                // 2. 使用 requestAnimationFrame 推迟 .visible 类的添加，确保浏览器有时间渲染 display:flex
+                requestAnimationFrame(() => {
+                    // 这样可以保证过渡动画被正确触发
+                    feedbackModalOverlay.classList.add('visible');
+                });
+
+                // 3. 设置一个定时器，在弹窗显示一段时间后开始隐藏过程
+                setTimeout(() => {
+                    // 移除 .visible 类，触发向后（隐藏）的过渡动画
+                    feedbackModalOverlay.classList.remove('visible'); 
+
+                    // 4. 再设置一个定时器，等待隐藏动画（0.2s）结束后，再彻底将 display 设置为 none 并执行回调
+                    setTimeout(() => {
+                        feedbackModalOverlay.style.display = 'none'; 
+                        if (callback) {
+                            callback(); // 在弹窗完全消失后执行回调函数
+                        }
+                    }, 300); // 这个时间（300ms）要比 CSS 中的过渡时间（200ms）稍长，确保动画完成
+                }, 1500); // 弹窗完全可见的持续时间
+            }
+            
+            // --- 聊天 & 角色设定逻辑 ---
+            const myAvatarPreview = document.getElementById('my-avatar-preview'); const myAvatarInput = document.getElementById('my-avatar-input'); const myNameInput = document.getElementById('my-name-input'); const mySettingInput = document.getElementById('my-setting-input'); const characterListContainer = document.getElementById('character-list'); const charAvatarPreview = document.getElementById('char-avatar-preview'); const charAvatarInput = document.getElementById('char-avatar-input'); const charNameInput = document.getElementById('char-name-input'); const charSettingInput = document.getElementById('char-setting-input'); const charWorldSelect = document.getElementById('char-world-select'); const dialogueContent = document.getElementById('dialogue-content'); const dialogueCharacterName = document.getElementById('dialogue-character-name'); const messageInput = document.getElementById('message-input'); const sendMessageBtn = document.getElementById('send-message-btn');
+            let characters = []; let activeCharacter = null; let newCharAvatarDataUrl = null; let newMyAvatarDataUrl = null; let editingCharacterId = null; let myInfo = { name: '我', setting: '我是一个用户', avatar: null };
+
+            // --- 为角色设定的“保存”按钮添加功能和绿色弹窗，并调整屏幕切换延迟 ---
+            document.getElementById('save-char-btn').onclick = function() {
+                const charName = charNameInput.value.trim();
+                const charSetting = charSettingInput.value.trim();
+
+                // 基本信息校验
+                if (!charName || !charSetting) {
+                    showFeedbackModal('请填写好友的名字和设定！', false);
+                    return;
+                }
+                
+                // 如果是创建新角色，必须有头像
+                if (!editingCharacterId && !newCharAvatarDataUrl) {
+                    showFeedbackModal('请为新好友上传头像！', false);
+                    return;
+                }
+
+                // 保存我的信息
+                myInfo.name = myNameInput.value.trim() || '我';
+                myInfo.setting = mySettingInput.value.trim() || '我是一个用户';
+                if (newMyAvatarDataUrl) myInfo.avatar = newMyAvatarDataUrl;
+                localStorage.setItem('myInfo', JSON.stringify(myInfo));
+
+                let feedbackMsg = '';
+                let transitionCallback = null; // Callback for screen transition after modal hides
+
+                // 判断是编辑还是新建
+                if (editingCharacterId) {
+                    // 编辑现有角色
+                    const charToUpdate = characters.find(c => c.id === editingCharacterId);
+                    if (charToUpdate) {
+                        charToUpdate.name = charName;
+                        charToUpdate.setting = charSetting;
+                        charToUpdate.worldBookId = charWorldSelect.value;
+                        if (newCharAvatarDataUrl) charToUpdate.avatar = newCharAvatarDataUrl;
+                        
+                        saveCharactersToLocalStorage();
+                        feedbackMsg = '好友信息更新成功';
+                        transitionCallback = () => {
+                           // 修正：从角色设定返回，如果是编辑现有角色，应该返回到好友设置，而不是直接聊天列表
+                           if (activeCharacter && activeCharacter.id === editingCharacterId) {
+                               showScreen('friendSettings');
+                               renderFriendSettings(); // Re-render friend settings to reflect changes
+                           } else {
+                               showScreen('wechatContainer');
+                               renderWechatPage('chat-list');
+                           }                           
+                        };
+                    }
+                } else {
+                    // 创建新角色
+                    const newCharacter = {
+                        id: Date.now(),
+                        name: charName,
+                        avatar: newCharAvatarDataUrl,
+                        setting: charSetting,
+                        worldBookId: charWorldSelect.value,
+                        age: null,
+                        birthday: null,
+                        localWorldBookId: 'none',
+                        messages: [],
+                        pinned: false, // New property for pinning
+                        bubbleSettings: { // Initialize bubble settings for new character
+                            myBubbleColor: '#007AFF',
+                            theirBubbleColor: '#FFFFFF',
+                            customCss: ''
+                        }
+                    };
+                    characters.unshift(newCharacter);
+                    saveCharactersToLocalStorage();                    
+                    feedbackMsg = '好友创建成功';
+                    transitionCallback = () => {
+                        showScreen('wechatContainer');
+                        renderWechatPage('chat-list');
+                    };
+                }
+                resetCharacterForm();
+                
+                // NEW: Hide the current character settings screen BEFORE showing the feedback modal
+                screens.characterSettings.style.display = 'none';
+
+                // Call showFeedbackModal with the transitionCallback
+                showFeedbackModal(feedbackMsg, true, transitionCallback);
+            };
+
+            charAvatarPreview.addEventListener('click', () => charAvatarInput.click()); charAvatarInput.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (re) => { newCharAvatarDataUrl = re.target.result; charAvatarPreview.style.backgroundImage = `url(${newCharAvatarDataUrl})`; charAvatarPreview.classList.add('has-image'); }; reader.readAsDataURL(file); } }); myAvatarPreview.addEventListener('click', () => myAvatarInput.click()); myAvatarInput.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (re) => { newMyAvatarDataUrl = re.target.result; myAvatarPreview.style.backgroundImage = `url(${newMyAvatarDataUrl})`; myAvatarPreview.classList.add('has-image'); }; reader.readAsDataURL(file); } }); function resetCharacterForm() { charNameInput.value = ''; charSettingInput.value = ''; charWorldSelect.value = 'none'; charAvatarPreview.style.backgroundImage = ''; charAvatarPreview.classList.remove('has-image'); charAvatarInput.value = ''; newCharAvatarDataUrl = null; myAvatarInput.value = ''; newMyAvatarDataUrl = null; editingCharacterId = null; } function populateMyInfoForm() { myNameInput.value = myInfo.name; mySettingInput.value = myInfo.setting; if (myInfo.avatar) { myAvatarPreview.style.backgroundImage = `url(${myInfo.avatar})`; myAvatarPreview.classList.add('has-image'); } else { myAvatarPreview.style.backgroundImage = ''; myAvatarPreview.classList.remove('has-image'); } }
+            
+            // Modified renderCharacterList for swipe actions and pinning
+            function renderCharacterList(container) {
+                container.innerHTML = '';
+                // Sort characters: pinned first, then by name (or last message time)
+                const sortedCharacters = [...characters].sort((a, b) => {
+                    if (a.pinned && !b.pinned) return -1;
+                    if (!a.pinned && b.pinned) return 1;
+                    return a.name.localeCompare(b.name); // Or by last message timestamp
+                });
+
+                if (sortedCharacters.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; color:#8A8FA0; margin-top: 40px;">还没有好友和群聊</p>';
+                    return;
+                }
+
+                sortedCharacters.forEach(char => {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'character-item-wrapper';
+                    wrapper.dataset.id = char.id;
+
+                    const item = document.createElement('div');
+                    item.className = 'character-item';
+                    if (char.pinned) item.classList.add('pinned');
+
+                    const avatarClass = char.isGroup ? 'character-avatar group-avatar' : 'character-avatar';
+                    item.innerHTML = `
+                        <div class="${avatarClass}" style="background-image: url(${char.avatar || ''}); border-radius: 8px;"></div>
+                        <span class="character-name">${char.name}</span>
+                    `;
+                    item.addEventListener('click', (e) => {
+                        // Prevent opening dialogue if a swipe is active or action button clicked
+                        if (wrapper.classList.contains('swiped') || e.target.closest('.swipe-actions')) {
+                            // If a swipe is active, clicking on the item itself should close the swipe actions
+                            closeAllSwipeActions();
+                            return;
+                        }
+                        openDialogue(char.id);
+                    });
+
+                    const swipeActions = document.createElement('div');
+                    swipeActions.className = 'swipe-actions';
+                    swipeActions.innerHTML = `
+                        <button class="action-pin" data-id="${char.id}">${char.pinned ? '取消置顶' : '置顶'}</button>
+                        <button class="action-delete" data-id="${char.id}">删除</button>
+                    `;
+                    swipeActions.querySelector('.action-pin').addEventListener('click', () => togglePinCharacter(char.id));
+                    swipeActions.querySelector('.action-delete').addEventListener('click', () => deleteCharacter(char.id));
+
+                    wrapper.appendChild(item);
+                    wrapper.appendChild(swipeActions);
+                    container.appendChild(wrapper);
+
+                    // Add swipe event listeners
+                    addSwipeListeners(wrapper);
+                });
+            }
+
+            // Swipe logic
+            let startX = 0;
+            let currentTranslateX = 0;
+            let activeSwipeWrapper = null;
+
+            function addSwipeListeners(wrapper) {
+                let startX = 0;
+                let isSwiping = false;
+
+                function handleTouchStart(e) {
+                    startX = e.touches[0].clientX;
+                    isSwiping = false;
+                    closeAllSwipeActions(wrapper); // Close other swiped items
+                }
+
+                function handleTouchMove(e) {
+                    const currentX = e.touches[0].clientX;
+                    const diffX = currentX - startX;
+
+                    if (Math.abs(diffX) > 10) { // Start swiping if movement is significant
+                        isSwiping = true;
+                        wrapper.classList.add('swiping'); // Optional: add a class for visual feedback during swipe
+                    }
+
+                    if (isSwiping) {
+                        e.preventDefault(); // Prevent scrolling while swiping
+                        // Only allow swiping left
+                        const translateX = Math.min(0, Math.max(-120, diffX)); // Limit swipe to -120px
+                        wrapper.querySelector('.character-item').style.transform = `translateX(${translateX}px)`;
+                        // The actions are positioned absolutely to the right, so they don't need a direct transform for movement.
+                        // The wrapper.swiped class will handle the final position.
+                    }
+                }
+
+                function handleTouchEnd(e) {
+                    const item = wrapper.querySelector('.character-item');
+                    const itemTransform = item.style.transform;
+                    const regex = /translateX\(([-\d.]+)px\)/;
+                    const match = regex.exec(itemTransform);
+                    let currentX = match ? parseFloat(match[1]) : 0;
+
+                    wrapper.classList.remove('swiping');
+
+                    if (currentX < -60) { // If swiped more than half way, snap open
+                        wrapper.classList.add('swiped');
+                        item.style.transform = `translateX(-120px)`;
+                        activeSwipeWrapper = wrapper;
+                    } else { // Snap closed
+                        wrapper.classList.remove('swiped');
+                        item.style.transform = `translateX(0)`;
+                        activeSwipeWrapper = null;
+                    }
+                    isSwiping = false;
+                }
+
+                wrapper.addEventListener('touchstart', handleTouchStart, { passive: false });
+                wrapper.addEventListener('touchmove', handleTouchMove, { passive: false });
+                wrapper.addEventListener('touchend', handleTouchEnd);
+            }
+
+            function closeAllSwipeActions(excludeWrapper = null) {
+                document.querySelectorAll('.character-item-wrapper.swiped').forEach(wrapper => {
+                    if (wrapper !== excludeWrapper) {
+                        wrapper.classList.remove('swiped');
+                        wrapper.querySelector('.character-item').style.transform = `translateX(0)`;
+                    }
+                });
+            }
+
+            // Click outside to close swipe actions
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.character-item-wrapper') && activeSwipeWrapper) {
+                    closeAllSwipeActions();
+                }
+            });
+
+
+            function togglePinCharacter(charId) {
+                const char = characters.find(c => c.id === charId);
+                if (char) {
+                    char.pinned = !char.pinned;
+                    saveCharactersToLocalStorage();
+                    renderCharacterList(characterListContainer); // Re-render to update order and button text
+                    showFeedbackModal(char.pinned ? '好友已置顶' : '已取消置顶');
+                }
+            }
+
+            function deleteCharacter(charId) {
+                showConfirmationModal('确定要删除此好友吗？此操作不可恢复。', () => {
+                    characters = characters.filter(c => c.id !== charId);
+                    saveCharactersToLocalStorage();
+                    renderCharacterList(characterListContainer); // Re-render to update list
+                    showFeedbackModal('好友已删除');
+                });
+            }
+
+            function openDialogue(charId) { activeCharacter = characters.find(c => c.id == charId); if (!activeCharacter) return; dialogueCharacterName.textContent = activeCharacter.name; dialogueContent.innerHTML = ''; if (activeCharacter.messages) { activeCharacter.messages.forEach(msg => appendMessage(msg)); } else { activeCharacter.messages = []; } showScreen('dialogue'); setTimeout(() => dialogueContent.scrollTop = dialogueContent.scrollHeight, 0); } sendMessageBtn.addEventListener('click', sendMessage); messageInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') sendMessage(); });
+            
+            function getContrastingTextColor(bgColor) {
+                // Function to determine if white or black text is better for contrast
+                // From: https://stackoverflow.com/questions/11867545/change-text-color-based-on-brightness-of-the-given-color-jquery
+                const color = (bgColor.charAt(0) === '#') ? bgColor.substring(1, 7) : bgColor;
+                const r = parseInt(color.substring(0, 2), 16); // red
+                const g = parseInt(color.substring(2, 4), 16); // green
+                const b = parseInt(color.substring(4, 6), 16); // blue
+                const uicolors = [r / 255, g / 255, b / 255];
+                const c = uicolors.map((col) => {
+                    if (col <= 0.03928) {
+                        return col / 12.92;
+                    }
+                    return Math.pow((col + 0.055) / 1.055, 2.4);
+                });
+                const L = (0.2126 * c[0]) + (0.7152 * c[1]) + (0.0722 * c[2]);
+                return (L > 0.179) ? '#000000' : '#FFFFFF'; // Darken threshold slightly
+            }
+
+            function sendMessage() {
+                const text = messageInput.value.trim();
+                if (!text || !activeCharacter) return;
+
+                const message = { type: 'text', content: text, sender: 'me', authorName: myInfo.name, authorAvatar: myInfo.avatar };
+                appendMessage(message); // Pass activeCharacter for bubble styling
+                activeCharacter.messages.push(message);
+                saveCharactersToLocalStorage();
+                messageInput.value = '';
+                messageInput.focus();
+            }
+
+            function appendMessage(msg) {
+                if (msg.type === 'text') {
+                    // Pass bubbleSettings from activeCharacter for bubble styling
+                    if (msg.sender === 'system') {
+                        const messageRow = document.createElement('div');
+                        messageRow.className = 'message-row system-message';
+                        const systemText = document.createElement('span');
+                        systemText.className = 'chat-system-text';
+                        systemText.textContent = msg.content;
+                        messageRow.appendChild(systemText);
+                        dialogueContent.appendChild(messageRow);
+                    } else {
+                        appendBubble(msg.sender === 'me' ? 'my-bubble' : 'their-bubble', msg.content, msg.authorName, msg.authorAvatar, activeCharacter.bubbleSettings, msg.isTyping);
+                    }
+                } else if (msg.type === 'voice') {
+                    // Pass bubbleSettings from activeCharacter to appendVoiceBubble
+                    appendVoiceBubble(msg.sender === 'me', msg.content, msg.duration, msg.authorName, msg.authorAvatar, activeCharacter.bubbleSettings);
+                }
+                dialogueContent.scrollTop = dialogueContent.scrollHeight; // Ensure scrolling to bottom after any message
+            }
+
+            // Modified appendBubble to apply custom bubble styles and handle typing indicator
+            function appendBubble(bubbleType, text, authorName = null, authorAvatar = null, bubbleSettings = {}, isTyping = false) {
+                const messageRow = document.createElement('div');
+                const bubble = document.createElement('div');
+                const avatar = document.createElement('div');
+                
+                avatar.className = 'chat-avatar';
+                bubble.className = `chat-bubble ${bubbleType}`;
+
+                // Apply custom CSS if available
+                if (bubbleSettings.customCss && bubbleSettings.customCss.trim() !== '') {
+                    bubble.style.cssText = bubbleSettings.customCss.trim();
+                } else {
+                    // Apply custom colors if no custom CSS
+                    if (bubbleType === 'my-bubble') {
+                        const bgColor = bubbleSettings.myBubbleColor || '#007AFF';
+                        bubble.style.backgroundColor = bgColor;
+                        bubble.style.color = getContrastingTextColor(bgColor); // Auto-set text color for contrast
+                        bubble.style.borderRadius = '18px 18px 4px 18px'; // Default iOS style
+                        bubble.style.border = '1px solid rgba(0, 0, 0, 0.1)'; // My bubble border
+                    } else { // their-bubble
+                        const bgColor = bubbleSettings.theirBubbleColor || '#FFFFFF';
+                        bubble.style.backgroundColor = bgColor;
+                        bubble.style.color = getContrastingTextColor(bgColor); // Auto-set text color for contrast
+                        bubble.style.border = '1px solid #E5E5EA'; // Keep border for their bubble default
+                        bubble.style.borderRadius = '18px 18px 18px 4px'; // Default iOS style
+                    }
+                }
+
+                if (isTyping) {
+                    bubble.classList.add('typing-indicator');
+                    bubble.innerHTML = `
+                        <div class="dot-flashing">
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                        </div>
+                    `;
+                    messageRow.dataset.isTyping = true; // Mark row for easy removal
+                } else {
+                    bubble.textContent = text;
+                }
+
+                if (bubbleType === 'my-bubble') {
+                    messageRow.className = 'message-row my-message';
+                    if (myInfo.avatar) { avatar.style.backgroundImage = `url(${myInfo.avatar})`; }
+                    messageRow.appendChild(bubble);
+                    messageRow.appendChild(avatar);
+                } else {
+                    messageRow.className = 'message-row their-message';
+                    if (authorAvatar) { avatar.style.backgroundImage = `url(${authorAvatar})`; }
+                    messageRow.appendChild(avatar);
+                    messageRow.appendChild(bubble);
+                }
+                dialogueContent.appendChild(messageRow);
+                dialogueContent.scrollTop = dialogueContent.scrollHeight;
+                return messageRow; // Return the created message row for typing indicator removal
+            }
+
+            // Modified appendVoiceBubble to apply custom bubble styles
+            function appendVoiceBubble(isMyMessage, text, duration, authorName, authorAvatar, bubbleSettings = {}) {
+                const messageRow = document.createElement('div');
+                const bubble = document.createElement('div');
+                const avatar = document.createElement('div');
+                
+                avatar.className = 'chat-avatar';
+                bubble.className = 'wechat-voice-bubble';
+                bubble.dataset.text = text;
+                bubble.innerHTML = `<span class="voice-duration">${duration}</span><div class="wechat-voice-icon"><span class="bar1"></span><span class="bar2"></span><span class="bar3"></span></div>`;
+                
+                // Apply custom CSS if available
+                if (bubbleSettings.customCss && bubbleSettings.customCss.trim() !== '') {
+                    bubble.style.cssText = bubbleSettings.customCss.trim();
+                    // Custom CSS might override color of voice icon/duration, might need specific targeting or user to include.
+                } else {
+                    // Apply custom colors if no custom CSS
+                    if (isMyMessage) {
+                        const bgColor = bubbleSettings.myBubbleColor || '#007AFF';
+                        bubble.style.backgroundColor = bgColor;
+                        bubble.style.color = getContrastingTextColor(bgColor);
+                        // Update voice icon/duration color for contrast if needed
+                        bubble.querySelectorAll('.wechat-voice-icon span, .voice-duration').forEach(el => el.style.backgroundColor = el.style.color = getContrastingTextColor(bgColor));
+                        bubble.style.borderRadius = '18px 18px 4px 18px';
+                        bubble.style.border = '1px solid rgba(0, 0, 0, 0.1)'; // My voice bubble border
+                    } else { // their-bubble
+                        const bgColor = bubbleSettings.theirBubbleColor || '#FFFFFF';
+                        bubble.style.backgroundColor = bgColor;
+                        bubble.style.color = getContrastingTextColor(bgColor);
+                        bubble.style.border = '1px solid #E5E5EA';
+                        bubble.querySelectorAll('.wechat-voice-icon span, .voice-duration').forEach(el => el.style.backgroundColor = el.style.color = getContrastingTextColor(bgColor));
+                        bubble.style.borderRadius = '18px 18px 18px 4px';
+                    }
+                }
+
+
+                if (isMyMessage) {
+                    messageRow.className = 'message-row my-message';
+                    if (myInfo.avatar) avatar.style.backgroundImage = `url(${myInfo.avatar})`;
+                    messageRow.appendChild(bubble);
+                    messageRow.appendChild(avatar);
+                } else {
+                    messageRow.className = 'message-row their-message';
+                    if (authorAvatar) avatar.style.backgroundImage = `url(${authorAvatar})`;
+                    messageRow.appendChild(avatar);
+                    messageRow.appendChild(bubble);
+                }
+                dialogueContent.appendChild(messageRow);
+                dialogueContent.scrollTop = dialogueContent.scrollHeight;
+            }
+
+            function saveCharactersToLocalStorage() { localStorage.setItem('savedCharacters', JSON.stringify(characters)); }
+            function loadCharactersFromLocalStorage() { 
+                const saved = localStorage.getItem('savedCharacters'); 
+                if (saved) { 
+                    characters = JSON.parse(saved); 
+                    characters.forEach(char => { 
+                        if (!char.isGroup) { 
+                            char.age = char.age || null; 
+                            char.birthday = char.birthday || null; 
+                            char.localWorldBookId = char.localWorldBookId || 'none'; 
+                            char.pinned = char.hasOwnProperty('pinned') ? char.pinned : false; // Initialize pinned property
+                            // Initialize bubble settings if not present
+                            char.bubbleSettings = char.bubbleSettings || { myBubbleColor: '#007AFF', theirBubbleColor: '#FFFFFF', customCss: '' };
+                        } else {
+                            // For groups, ensure bubble settings are also initialized if needed, or handle separately
+                            char.localWorldBookId = char.localWorldBookId || 'none';
+                            char.bubbleSettings = char.bubbleSettings || { myBubbleColor: '#007AFF', theirBubbleColor: '#FFFFFF', customCss: '' };
+                        }
+                    }); 
+                } else { 
+                    characters = []; 
+                } 
+            }
+            
+            // --- 好友设定 ---
+            const friendLocalWorldSelect = document.getElementById('friend-local-world-select');
+            // New bubble customization elements
+            const myBubbleColorPicker = document.getElementById('my-bubble-color-picker');
+            const theirBubbleColorPicker = document.getElementById('their-bubble-color-picker');
+            const customBubbleCssInput = document.getElementById('custom-bubble-css');
+            const previewMyBubble = document.getElementById('preview-my-bubble');
+            const previewTheirBubble = document.getElementById('preview-their-bubble');
+            const copyBubbleCssBtn = document.getElementById('copy-bubble-css-btn');
+            const clearBubbleCssBtn = document.getElementById('clear-bubble-css-btn');
+            const bubbleCssExampleContent = customBubbleCssInput.placeholder; // Use placeholder as example content
+
+
+            document.getElementById('edit-friend-info-btn').addEventListener('click', () => { 
+                if (!activeCharacter) return; 
+                editingCharacterId = activeCharacter.id; 
+                populateWorldBookSelects(); 
+                charNameInput.value = activeCharacter.name; 
+                charSettingInput.value = activeCharacter.setting; 
+                charWorldSelect.value = activeCharacter.worldBookId || 'none'; 
+                if (activeCharacter.avatar) { 
+                    charAvatarPreview.style.backgroundImage = `url(${activeCharacter.avatar})`; 
+                    charAvatarPreview.classList.add('has-image'); 
+                    newCharAvatarDataUrl = activeCharacter.avatar; 
+                } else { 
+                    charAvatarPreview.style.backgroundImage = ''; 
+                    charAvatarPreview.classList.remove('has-image'); 
+                } 
+                populateMyInfoForm(); 
+                showScreen('characterSettings'); 
+            });
+            
+            // --- 为“一键清除对话”添加确认弹窗和成功提示弹窗 ---
+            document.getElementById('clear-dialogue-btn').onclick = function() { 
+                if (!activeCharacter) return; 
+                // 先弹出确认框
+                showConfirmationModal(`确定要清除与 ${activeCharacter.name} 的所有聊天记录吗？此操作不可恢复。`, () => { 
+                    // 用户点击“确认”后执行
+                    activeCharacter.messages = []; 
+                    saveCharactersToLocalStorage(); 
+                    dialogueContent.innerHTML = ''; 
+                    // 显示操作成功的提示弹窗 (无需回调，因为不涉及屏幕切换)
+                    showFeedbackModal('聊天记录已清除'); 
+                }); 
+            };
+
+            function renderFriendSettings() { 
+                if (!activeCharacter) return; 
+                document.getElementById('friend-settings-character-name').textContent = `${activeCharacter.name} 的设置`; 
+                // Removed japanese-id-card and its associated elements and logic
+                populateFriendLocalWorldBookSelect(); 
+
+                // Populate bubble customization settings
+                const bubbleSettings = activeCharacter.bubbleSettings || {};
+                myBubbleColorPicker.value = bubbleSettings.myBubbleColor || '#007AFF';
+                theirBubbleColorPicker.value = bubbleSettings.theirBubbleColor || '#FFFFFF';
+                customBubbleCssInput.value = bubbleSettings.customCss || '';
+                updateBubblePreviews();
+
+                // Initialize copyBubbleCssBtn text based on customCss presence
+                if (activeCharacter.bubbleSettings.customCss && activeCharacter.bubbleSettings.customCss.trim() !== '') {
+                    copyBubbleCssBtn.textContent = '保存气泡';
+                } else {
+                    copyBubbleCssBtn.textContent = '加载示例CSS';
+                }
+            }
+
+            function populateFriendLocalWorldBookSelect() { 
+                friendLocalWorldSelect.innerHTML = '<option value="none">无</option>'; 
+                worldBooks.local.forEach(book => { 
+                    const option = document.createElement('option'); 
+                    option.value = book.id; 
+                    option.textContent = book.name; 
+                    friendLocalWorldSelect.appendChild(option); 
+                }); 
+                if (activeCharacter) friendLocalWorldSelect.value = activeCharacter.localWorldBookId; 
+            }
+
+            // Bubble customization logic
+            function updateBubblePreviews() {
+                if (!activeCharacter) return; // Ensure activeCharacter is set before updating previews
+
+                const bubbleSettings = activeCharacter.bubbleSettings || {};
+                const myColor = myBubbleColorPicker.value;
+                const theirColor = theirBubbleColorPicker.value;
+                const customCss = customBubbleCssInput.value.trim();
+
+                // Reset styles
+                previewMyBubble.style.cssText = '';
+                previewTheirBubble.style.cssText = '';
+
+                if (customCss !== '') {
+                    previewMyBubble.style.cssText = customCss;
+                    previewTheirBubble.style.cssText = customCss;
+                } else {
+                    previewMyBubble.style.backgroundColor = myColor;
+                    previewMyBubble.style.color = getContrastingTextColor(myColor);
+                    previewMyBubble.style.borderRadius = '18px 18px 4px 18px'; // Default iOS style
+                    previewMyBubble.style.border = '1px solid rgba(0, 0, 0, 0.1)'; // My bubble border in preview
+
+                    previewTheirBubble.style.backgroundColor = theirColor;
+                    previewTheirBubble.style.color = getContrastingTextColor(theirColor);
+                    previewTheirBubble.style.border = '1px solid #E5E5EA'; // Default border
+                    previewTheirBubble.style.borderRadius = '18px 18px 18px 4px'; // Default iOS style
+                }
+            }
+
+            myBubbleColorPicker.addEventListener('input', () => {
+                if (activeCharacter) {
+                    activeCharacter.bubbleSettings.myBubbleColor = myBubbleColorPicker.value;
+                    saveCharactersToLocalStorage();
+                    updateBubblePreviews();
+                }
+            });
+
+            theirBubbleColorPicker.addEventListener('input', () => {
+                if (activeCharacter) {
+                    activeCharacter.bubbleSettings.theirBubbleColor = theirBubbleColorPicker.value;
+                    saveCharactersToLocalStorage();
+                    updateBubblePreviews();
+                }
+            });
+
+            customBubbleCssInput.addEventListener('input', () => {
+                // Any change in the textarea will enable the '保存气泡' state if it's currently '加载示例CSS'
+                if (activeCharacter) {
+                    // Check if the current value is the example content exactly, if so, keep button as '加载示例CSS'
+                    if (customBubbleCssInput.value.trim() === bubbleCssExampleContent.trim() && copyBubbleCssBtn.textContent === '加载示例CSS') {
+                        // Do nothing, keep it as '加载示例CSS'
+                    } else if (copyBubbleCssBtn.textContent === '加载示例CSS') {
+                        copyBubbleCssBtn.textContent = '保存气泡'; // If user starts typing, change button to Save
+                    }
+                    // No automatic save here, it will be saved on button click
+                    // For live preview, call updateBubblePreviews
+                    activeCharacter.bubbleSettings.customCss = customBubbleCssInput.value; // Temporarily update for live preview
+                    updateBubblePreviews();
+                }
+            });
+
+            copyBubbleCssBtn.addEventListener('click', () => {
+                if (!activeCharacter) return;
+
+                if (copyBubbleCssBtn.textContent === '加载示例CSS') {
+                    // Load example CSS into textarea and save it
+                    customBubbleCssInput.value = bubbleCssExampleContent.trim();
+                    activeCharacter.bubbleSettings.customCss = customBubbleCssInput.value;
+                    saveCharactersToLocalStorage();
+                    updateBubblePreviews();
+                    showFeedbackModal('示例CSS已加载并保存！');
+                    copyBubbleCssBtn.textContent = '保存气泡'; // Change button text
+                } else { // Button text is '保存气泡'
+                    // Save current CSS from textarea
+                    activeCharacter.bubbleSettings.customCss = customBubbleCssInput.value.trim();
+                    saveCharactersToLocalStorage();
+                    updateBubblePreviews();
+                    showFeedbackModal('气泡自定义CSS已保存！');
+                }
+            });
+
+            clearBubbleCssBtn.addEventListener('click', () => {
+                if (activeCharacter) {
+                    showConfirmationModal('确定要清除自定义气泡CSS吗？这将恢复颜色选择器设置。', () => {
+                        activeCharacter.bubbleSettings.customCss = '';
+                        customBubbleCssInput.value = '';
+                        saveCharactersToLocalStorage();
+                        updateBubblePreviews();
+                        showFeedbackModal('自定义CSS已清除。');
+                        copyBubbleCssBtn.textContent = '加载示例CSS'; // Reset button text after clearing
+                    });
+                }
+            });
+
+
+            // --- API 设置 & AI 回复 ---
+            const apiUrlInput = document.getElementById('api-url-input'); const apiKeyInput = document.getElementById('api-key-input'); const modelSelect = document.getElementById('model-select'); const fetchModelsBtn = document.getElementById('fetch-models-btn'); 
+            function saveApiSettings() { 
+                const settings = { url: apiUrlInput.value.trim(), key: apiKeyInput.value.trim(), model: modelSelect.value }; 
+                localStorage.setItem('apiSettings', JSON.stringify(settings)); 
+                showFeedbackModal('API 设置已保存！'); 
+            } 
+            function loadApiSettings() { 
+                const saved = localStorage.getItem('apiSettings'); 
+                if (saved) { 
+                    const settings = JSON.parse(saved); 
+                    apiUrlInput.value = settings.url || ''; 
+                    apiKeyInput.value = settings.key || ''; 
+                    if(settings.model) { 
+                        modelSelect.innerHTML = `<option value="${settings.model}">${settings.model}</option>`; 
+                        modelSelect.value = settings.model; 
+                    } 
+                } 
+            } 
+            document.getElementById('api-save-btn').addEventListener('click', saveApiSettings); 
+            fetchModelsBtn.addEventListener('click', async () => { /* ... API fetch logic ... */ }); 
+            
+            // AI Reply Functionality
+            document.getElementById('ai-reply-btn').addEventListener('click', generateAIReply);
+
+            async function generateAIReply() {
+                if (!activeCharacter) {
+                    showFeedbackModal('请先选择一个好友开始对话。', false);
+                    return;
+                }
+
+                const apiSettings = JSON.parse(localStorage.getItem('apiSettings') || '{}');
+                if (!apiSettings.url || !apiSettings.key || !apiSettings.model) {
+                    showFeedbackModal('API未配置，请先在API设置中配置API地址、密钥和模型。', false);
+                    return;
+                }
+
+                const typingIndicatorRow = appendBubble('their-bubble', '对方正在输入中...', activeCharacter.name, activeCharacter.avatar, activeCharacter.bubbleSettings, true);
+                
+                // Scroll to bottom immediately after adding typing indicator
+                setTimeout(() => dialogueContent.scrollTop = dialogueContent.scrollHeight, 0);
+
+
+                try {
+                    const messagesForAI = [
+                        { role: "system", content: `你是一个名为 ${activeCharacter.name} 的角色。${activeCharacter.setting}\n我的名字是 ${myInfo.name}，我的设定是 ${myInfo.setting}。` }
+                    ];
+
+                    // Add world book context
+                    let worldBookContent = '';
+                    if (activeCharacter.worldBookId && activeCharacter.worldBookId !== 'none') {
+                        const globalBook = worldBooks.global.find(b => b.id == activeCharacter.worldBookId);
+                        if (globalBook) worldBookContent += `\n全局世界书：${globalBook.name}\n内容：${globalBook.content}`;
+                    }
+                    if (activeCharacter.localWorldBookId && activeCharacter.localWorldBookId !== 'none') {
+                        const localBook = worldBooks.local.find(b => b.id == activeCharacter.localWorldBookId);
+                        if (localBook) worldBookContent += `\n局部世界书：${localBook.name}\n内容：${localBook.content}`;
+                    }
+                    if (worldBookContent) {
+                        messagesForAI[0].content += `\n以下是世界观信息，请在回复中融入：\n${worldBookContent}`;
+                    }
+
+                    // Add recent chat history (last 5-10 messages)
+                    const recentMessages = activeCharacter.messages.slice(-10); // Get last 10 messages
+                    recentMessages.forEach(msg => {
+                        // Only add 'me' or 'assistant' messages to AI context, skip system messages
+                        if (msg.sender === 'me' || msg.sender === 'their') {
+                            messagesForAI.push({
+                                role: msg.sender === 'me' ? 'user' : 'assistant',
+                                content: msg.content
+                            });
+                        }
+                    });
+
+                    // console.log("Sending to AI:", JSON.stringify(messagesForAI, null, 2)); // Debugging
+
+                    const response = await fetch(apiSettings.url + '/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${apiSettings.key}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            model: apiSettings.model,
+                            messages: messagesForAI,
+                            max_tokens: 200,
+                            temperature: 0.7
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(`API错误: ${response.status} - ${errorData.error ? errorData.error.message : response.statusText}`);
+                    }
+
+                    const data = await response.json();
+                    const aiReply = data.choices[0].message.content.trim();
+
+                    // Remove typing indicator
+                    if (typingIndicatorRow && typingIndicatorRow.parentNode) {
+                        typingIndicatorRow.parentNode.removeChild(typingIndicatorRow);
+                    }
+
+                    // Append AI's reply
+                    const aiMessage = { type: 'text', content: aiReply, sender: 'their', authorName: activeCharacter.name, authorAvatar: activeCharacter.avatar };
+                    appendMessage(aiMessage);
+                    activeCharacter.messages.push(aiMessage);
+                    saveCharactersToLocalStorage();
+
+                } catch (error) {
+                    if (typingIndicatorRow && typingIndicatorRow.parentNode) {
+                        typingIndicatorRow.parentNode.removeChild(typingIndicatorRow);
+                    }
+                    console.error("AI回复请求失败:", error);
+                    showFeedbackModal(`AI回复失败: ${error.message} (请检查API设置或网络)`, false);
+                }
+            }
+
+
+            // --- 世界书功能 ---
+            const worldBookModalOverlay = document.getElementById('worldBookModalOverlay'); const worldBookModalTitle = document.getElementById('world-book-modal-title'); const worldBookNameInput = document.getElementById('world-book-name-input'); const worldBookContentInput = document.getElementById('world-book-content-input'); const createWorldBookBtn = document.getElementById('create-world-book-btn'); let worldBooks = { global: [], local: [] }; let editingWorldBook = { type: null, id: null };
+            function loadWorldBooks() { const saved = localStorage.getItem('worldBooks'); if (saved) { worldBooks = JSON.parse(saved); } else { worldBooks = { global: [], local: [] }; } } function saveWorldBooks() { localStorage.setItem('worldBooks', JSON.stringify(worldBooks)); }
+            function renderWorldBooks() { const globalList = document.getElementById('global-world-books-list'); const localList = document.getElementById('local-world-books-list'); globalList.innerHTML = ''; localList.innerHTML = ''; const createItemHTML = (book, type) => `<span>${book.name}</span><div><button class="edit-btn" data-type="${type}" data-id="${book.id}">编辑</button><button class="delete-btn" data-type="${type}" data-id="${book.id}">删除</button></div>`; worldBooks.global.forEach(book => { const item = document.createElement('div'); item.className = 'world-book-item'; item.innerHTML = createItemHTML(book, 'global'); globalList.appendChild(item); }); worldBooks.local.forEach(book => { const item = document.createElement('div'); item.className = 'world-book-item'; item.innerHTML = createItemHTML(book, 'local'); localList.appendChild(item); }); }
+            document.querySelector('.world-book-main').addEventListener('click', e => { if (e.target.classList.contains('edit-btn')) { const { type, id } = e.target.dataset; const book = worldBooks[type].find(b => b.id == id); if (book) { editingWorldBook = { type, id }; worldBookModalTitle.textContent = '编辑世界书'; worldBookNameInput.value = book.name; worldBookContentInput.value = book.content; worldBookModalOverlay.style.display = 'flex'; } } else if (e.target.classList.contains('delete-btn')) { const { type, id } = e.target.dataset; showConfirmationModal('确定要删除这个世界书吗？', () => { worldBooks[type] = worldBooks[type].filter(b => b.id != id); saveWorldBooks(); renderWorldBooks(); showFeedbackModal('删除成功'); }); } });
+            createWorldBookBtn.addEventListener('click', () => { editingWorldBook = { type: createWorldBookBtn.dataset.type, id: null }; worldBookModalTitle.textContent = `创建${createWorldBookBtn.dataset.type === 'global' ? '全局' : '局部'}世界书`; worldBookNameInput.value = ''; worldBookContentInput.value = ''; worldBookModalOverlay.style.display = 'flex'; });
+            document.getElementById('world-book-save-btn').addEventListener('click', () => { const name = worldBookNameInput.value.trim(); const content = worldBookContentInput.value.trim(); if (!name || !content) { showFeedbackModal('名称和内容不能为空！', false); return; } const { type, id } = editingWorldBook; if (id) { const book = worldBooks[type].find(b => b.id == id); if(book) { book.name = name; book.content = content; } } else { worldBooks[type].push({ id: Date.now(), name, content }); } saveWorldBooks(); renderWorldBooks(); worldBookModalOverlay.style.display = 'none'; showFeedbackModal('保存成功'); }); // Added renderWorldBooks call
+            document.getElementById('world-book-cancel-btn').addEventListener('click', () => worldBookModalOverlay.style.display = 'none');
+            document.querySelectorAll('.world-book-tabs .tab-button').forEach(btn => { btn.addEventListener('click', () => { document.querySelector('.world-book-tabs .tab-button.active').classList.remove('active'); btn.classList.add('active'); document.querySelector('.world-book-tab-content.active').classList.remove('active'); document.getElementById(`${btn.dataset.type}-world-books-content`).classList.add('active'); createWorldBookBtn.textContent = `创建${btn.dataset.type === 'global' ? '全局' : '局部'}世界书`; createWorldBookBtn.dataset.type = btn.dataset.type; }); });
+            function populateWorldBookSelects() { charWorldSelect.innerHTML = '<option value="none">无</option>'; worldBooks.global.forEach(book => { const option = document.createElement('option'); option.value = book.id; option.textContent = book.name; charWorldSelect.appendChild(option); }); }
+
+            // ====================================================
+            // ============ 微信 App 逻辑 =======================
+            // ====================================================
+            const wechatHeaderTitle = document.getElementById('wechat-header-title'); const wechatHeaderActions = document.getElementById('wechat-header-actions'); const wechatBackBtn = document.getElementById('wechat-back-to-home-btn'); const wechatNavItems = document.querySelectorAll('.wechat-nav-item'); const wechatPages = document.querySelectorAll('.wechat-page'); const momentsPostsContainer = document.getElementById('moments-posts-container'); let currentWechatPage = 'chat-list'; let hasSimulatedThisSession = false; let wechatData = { moments: { name: '自定义名字', avatar: null, bg: null, posts: [] }, me: { name: '自定义名字', avatar: null, id: 'your_id_here' } }; let currentMomentData = {};
+            function saveWechatDataToLocalStorage() { localStorage.setItem('wechatData', JSON.stringify(wechatData)); }
+            function loadWechatDataFromLocalStorage() { const saved = localStorage.getItem('wechatData'); if (saved) wechatData = JSON.parse(saved); if (!wechatData.moments.posts) wechatData.moments.posts = []; }
+            function updateAllWechatNames(name) { wechatData.moments.name = name; wechatData.me.name = name; saveWechatDataToLocalStorage(); }
+            document.getElementById('wechat-app-btn').addEventListener('click', () => { showScreen('wechatContainer'); renderWechatPage('chat-list'); });
+            wechatBackBtn.addEventListener('click', () => showScreen('phone'));
+            wechatNavItems.forEach(item => { item.addEventListener('click', () => renderWechatPage(item.dataset.page)); });
+            async function renderWechatPage(pageName) { currentWechatPage = pageName; wechatNavItems.forEach(item => item.classList.toggle('active', item.dataset.page === pageName)); wechatPages.forEach(page => page.classList.toggle('active', page.id === `wechat-${pageName}-page`)); wechatHeaderActions.innerHTML = ''; wechatBackBtn.style.display = 'none'; switch(pageName) { case 'chat-list': wechatBackBtn.style.display = 'block'; wechatHeaderTitle.textContent = '微信'; const addFriendBtn = document.createElement('button'); addFriendBtn.textContent = '👤+'; addFriendBtn.title = '添加好友 (角色设定)'; addFriendBtn.onclick = () => { editingCharacterId = null; resetCharacterForm(); populateMyInfoForm(); populateWorldBookSelects(); showScreen('characterSettings'); }; wechatHeaderActions.appendChild(addFriendBtn); renderCharacterList(characterListContainer); break; case 'contacts': wechatHeaderTitle.textContent = '通讯录'; const createGroupBtn = document.createElement('button'); createGroupBtn.textContent = '✚'; createGroupBtn.title = "创建群聊"; createGroupBtn.onclick = () => showSelectFriendsScreen('group-chat'); wechatHeaderActions.appendChild(createGroupBtn); renderContactsList(); break; case 'moments': wechatHeaderTitle.textContent = '朋友圈'; const cameraBtn = document.createElement('button'); cameraBtn.textContent = '📷'; cameraBtn.onclick = () => { resetMomentData(); showScreen('wechatNewMoment'); }; wechatHeaderActions.appendChild(cameraBtn); renderMomentsList(); if (!hasSimulatedThisSession) { simulateAIInteraction(); hasSimulatedThisSession = true; } break; case 'me': wechatHeaderTitle.textContent = '我'; document.getElementById('me-avatar-editable').style.backgroundImage = wechatData.me.avatar ? `url(${wechatData.me.avatar})` : 'none'; document.getElementById('me-name-editable').textContent = wechatData.me.name; document.getElementById('me-id-editable').textContent = wechatData.me.id; break; } }
+            function renderContactsList() {  const container = document.getElementById('wechat-contacts-list'); const nonGroupCharacters = characters.filter(c => !c.isGroup); container.innerHTML = ''; if (nonGroupCharacters.length === 0) { container.innerHTML = '<p style="text-align:center; color:#8A8FA0; margin-top: 40px;">还没有好友</p>'; return; } nonGroupCharacters.forEach(char => { const item = document.createElement('div'); item.className = 'character-item'; item.innerHTML = `<div class="character-avatar" style="background-image: url(${char.avatar || ''}); border-radius: 8px;"></div><span class="character-name">${char.name}</span>`; item.addEventListener('click', () => openDialogue(char.id)); container.appendChild(item); }); }
+            document.getElementById('me-wallet-btn').addEventListener('click', () => showScreen('wechatWallet')); document.getElementById('wechat-wallet-back-btn').addEventListener('click', () => showScreen('wechatContainer'));
+            const momentTextarea = document.getElementById('new-moment-textarea'); const momentLocationValue = document.getElementById('moment-location-value'); const momentVisibilityValue = document.getElementById('moment-visibility-value');
+            function resetMomentData() { currentMomentData = { text: '', location: '', visibility: { type: 'public', list: [] } }; momentTextarea.value = ''; momentLocationValue.textContent = '不显示位置'; momentVisibilityValue.textContent = '公开'; document.getElementById('visibility-public').checked = true; }
+            document.getElementById('wechat-cancel-moment-btn').addEventListener('click', () => showScreen('wechatContainer'));
+            document.getElementById('wechat-post-moment-btn').addEventListener('click', () => { const newPost = { id: Date.now(), authorId: 'user', authorName: wechatData.me.name, authorAvatar: wechatData.me.avatar, text: momentTextarea.value.trim(), location: currentMomentData.location, timestamp: new Date().toISOString(), comments: [], visibility: currentMomentData.visibility }; wechatData.moments.posts.unshift(newPost); saveWechatDataToLocalStorage(); showFeedbackModal('发布成功'); showScreen('wechatContainer'); renderWechatPage('moments'); });
+            document.getElementById('moment-location-btn').addEventListener('click', () => { openTextEditor(momentLocationValue, "所在位置", (newValue) => { currentMomentData.location = newValue; momentLocationValue.textContent = newValue || '不显示位置'; }); });
+            document.getElementById('moment-visibility-btn').addEventListener('click', () => showScreen('wechatVisibilitySettings'));
+            document.getElementById('wechat-visibility-back-btn').addEventListener('click', () => showScreen('wechatNewMoment'));
+            document.getElementById('visibility-public').addEventListener('click', () => { currentMomentData.visibility = { type: 'public', list: [] }; momentVisibilityValue.textContent = '公开'; showScreen('wechatNewMoment'); });
+            document.getElementById('visibility-show-some').addEventListener('click', () => showSelectFriendsScreen('moment-show-some'));
+            document.getElementById('visibility-hide-some').addEventListener('click', () => showSelectFriendsScreen('moment-hide-some'));
+            function renderMomentsList() { document.getElementById('moments-bg-editable').style.backgroundImage = wechatData.moments.bg ? `url(${wechatData.moments.bg})` : 'none'; document.getElementById('moments-avatar-editable').style.backgroundImage = wechatData.moments.avatar ? `url(${wechatData.moments.avatar})` : 'none'; document.getElementById('moments-user-name-editable').textContent = wechatData.moments.name; momentsPostsContainer.innerHTML = ''; if (wechatData.moments.posts.length === 0) { momentsPostsContainer.innerHTML = '<p style="text-align:center; color:#888; padding:20px;">还没有动态，快来发布第一条吧</p>'; return; } wechatData.moments.posts.forEach(post => { const postEl = document.createElement('div'); postEl.className = 'moment-post'; const commentsHTML = post.comments.map(c => `<div class="moment-comment" id="comment-${c.id}"><span class="comment-author">${c.authorName}: </span><span>${c.text}</span></div>`).join(''); postEl.innerHTML = `<div class="moment-post-avatar" style="background-image: url(${post.authorAvatar || ''}); background-size: cover; background-position: center;"></div><div class="moment-post-main"><div class="moment-post-author">${post.authorName}</div><div class="moment-post-content">${post.text}</div>${post.location ? `<div class="moment-post-location">${post.location}</div>` : ''}<div class="moment-post-footer"><span>${new Date(post.timestamp).toLocaleString()}</span>${post.authorId === 'user' ? `<span class="moment-delete-btn" data-post-id="${post.id}">删除</span>` : ''}</div>${commentsHTML ? `<div class="moment-comments-section">${commentsHTML}</div>` : ''}</div>`; momentsPostsContainer.appendChild(postEl); }); momentsPostsContainer.querySelectorAll('.moment-delete-btn').forEach(btn => { btn.addEventListener('click', (e) => { const postId = e.target.dataset.postId; showConfirmationModal('确定要删除这条朋友圈吗？', () => deleteMoment(postId)); }); }); }
+            function deleteMoment(postId) { wechatData.moments.posts = wechatData.moments.posts.filter(p => p.id != postId); saveWechatDataToLocalStorage(); renderMomentsList(); }
+            async function simulateAIInteraction() { /* ... AI simulation logic ... */ }
+            let currentSelectFriendPurpose = '';
+            function showSelectFriendsScreen(purpose, options = {}) { currentSelectFriendPurpose = purpose; const titleMap = { 'group-chat': '选择联系人', 'moment-show-some': '选择谁可以看', 'moment-hide-some': '选择不给谁看', 'group-admin': '选择管理员' }; document.getElementById('select-friends-title').textContent = titleMap[purpose] || '选择好友'; const listEl = document.getElementById('wechat-select-friends-list'); listEl.innerHTML = ''; const friendSource = options.members ? options.members : characters.filter(c => !c.isGroup); friendSource.forEach(char => { const item = document.createElement('div'); item.className = 'friend-select-item'; item.innerHTML = `<input type="checkbox" id="friend-select-${char.id}" data-id="${char.id}"><label for="friend-select-${char.id}" style="display: flex; align-items: center; width: 100%;"><div class="character-avatar" style="width: 40px; height: 40px; border-radius: 6px; background-image: url(${char.avatar || ''})"></div><span class="character-name" style="margin-left: 10px;">${char.name}</span></label>`; listEl.appendChild(item); }); showScreen('wechatSelectFriends'); }
+            document.getElementById('wechat-cancel-select-friends-btn').addEventListener('click', () => { if (currentSelectFriendPurpose.startsWith('moment')) { showScreen('wechatVisibilitySettings'); } else if (currentSelectFriendPurpose === 'group-admin') { showScreen('wechatGroupSettings'); } else { showScreen('wechatContainer'); } }); 
+            
+            // --- 为“创建群聊”添加成功后的绿色弹窗，并调整屏幕切换延迟 ---
+            document.getElementById('wechat-confirm-select-friends-btn').addEventListener('click', async () => { 
+                const selectedIds = Array.from(document.getElementById('wechat-select-friends-list').querySelectorAll('input:checked')).map(input => parseInt(input.dataset.id)); 
+                if (currentSelectFriendPurpose === 'group-chat') { 
+                    if (selectedIds.length < 2) { showFeedbackModal('请至少选择2位好友', false); return; } 
+                    const members = characters.filter(c => selectedIds.includes(c.id)); 
+                    let groupName = members.slice(0, 3).map(m => m.name).join(', '); 
+                    if (members.length > 3) groupName += '...'; 
+                    const groupAvatar = await createGroupAvatar(selectedIds); 
+                    const newGroup = { 
+                        id: Date.now(), 
+                        name: groupName, 
+                        avatar: groupAvatar, 
+                        isGroup: true, 
+                        members: selectedIds, 
+                        messages: [], 
+                        adminId: null, 
+                        localWorldBookId: 'none',
+                        bubbleSettings: { // Initialize bubble settings for new group
+                            myBubbleColor: '#007AFF',
+                            theirBubbleColor: '#FFFFFF',
+                            customCss: ''
+                        }
+                    }; 
+                    characters.unshift(newGroup); 
+                    saveCharactersToLocalStorage(); 
+                    
+                    // NEW: Hide the current selection screen BEFORE showing the feedback modal
+                    screens.wechatSelectFriends.style.display = 'none';
+
+                    // Use callback for screen transition
+                    showFeedbackModal('群聊创建成功', true, () => openDialogue(newGroup.id));
+                } else if (currentSelectFriendPurpose === 'moment-show-some') { 
+                    currentMomentData.visibility = { type: 'show-some', list: selectedIds }; 
+                    momentVisibilityValue.textContent = `部分可见 (${selectedIds.length}人)`; 
+                    showScreen('wechatNewMoment'); 
+                } else if (currentSelectFriendPurpose === 'moment-hide-some') { 
+                    currentMomentData.visibility = { type: 'hide-some', list: selectedIds }; 
+                    momentVisibilityValue.textContent = `不给谁看 (${selectedIds.length}人)`; 
+                    showScreen('wechatNewMoment'); 
+                } else if (currentSelectFriendPurpose === 'group-admin' && activeCharacter) { 
+                    activeCharacter.adminId = selectedIds[0] || null; 
+                    saveCharactersToLocalStorage(); 
+                    renderGroupSettings(); 
+                    
+                    // NEW: Hide the current selection screen BEFORE showing the feedback modal
+                    screens.wechatSelectFriends.style.display = 'none';
+
+                    // 修改：不再发送系统消息到聊天，而是弹出提示“设置成功”，并使用回调
+                    showFeedbackModal('设置成功', true, () => showScreen('wechatGroupSettings'));
+                } 
+            });
+
+            async function createGroupAvatar(memberIds) {
+                // 这个函数用于合成群头像，保持不变
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const size = 100; // 头像大小
+                canvas.width = size;
+                canvas.height = size;
+                ctx.fillStyle = '#E5E5EA'; // 默认背景色
+                ctx.fillRect(0, 0, size, size);
+
+                const images = [];
+                const members = characters.filter(c => memberIds.includes(c.id)).slice(0, 9); // 最多取9个
+                for (const member of members) {
+                    if (member.avatar) {
+                        try {
+                            const img = await new Promise((resolve, reject) => {
+                                const image = new Image();
+                                image.crossOrigin = 'Anonymous';
+                                image.onload = () => resolve(image);
+                                image.onerror = () => resolve(null); // 如果图片加载失败，则跳过
+                                image.src = member.avatar;
+                            });
+                            if (img) images.push(img);
+                        } catch (e) {
+                            console.error("加载头像失败:", e);
+                        }
+                    }
+                }
+
+                if (images.length === 0) return null; // 如果没有有效头像，返回空
+
+                const gap = 3; // 图像之间的间隙
+                const numImages = images.length;
+                let positions = [];
+
+                if (numImages === 1) {
+                    positions = [{ x: 0, y: 0, w: size, h: size }];
+                } else if (numImages === 2) {
+                    const w = (size - gap) / 2;
+                    positions = [{ x: 0, y: 0, w: w, h: size }, { x: w + gap, y: 0, w: w, h: size }];
+                } else if (numImages === 3) {
+                    const w = (size - gap) / 2;
+                    const h = (size - gap) / 2;
+                    positions = [ { x: (size-w)/2, y: 0, w: w, h: h }, { x: 0, y: h + gap, w: w, h: h }, { x: w + gap, y: h + gap, w: w, h: h } ];
+                } else if (numImages === 4) {
+                    const w = (size - gap) / 2;
+                    const h = (size - gap) / 2;
+                    positions = [ { x: 0, y: 0, w: w, h: h }, { x: w + gap, y: 0, w: w, h: h }, { x: 0, y: h + gap, w: w, h: h }, { x: w + gap, y: h + gap, w: w, h: h }];
+                } else { // 5-9个都用九宫格
+                    const w = (size - gap * 2) / 3;
+                    const h = (size - gap * 2) / 3;
+                    let coords;
+                    if (numImages <= 9) { // 重新计算居中
+                        const rows = Math.ceil(numImages / 3);
+                        const startY = (size - (rows * h + (rows-1)*gap))/2;
+                        let currentY = startY;
+                        for(let i=0; i<rows; i++){
+                            const colsInRow = (i === rows-1) ? (numImages - i*3) : 3;
+                            const startX = (size - (colsInRow * w + (colsInRow-1)*gap))/2;
+                            let currentX = startX;
+                            for(let j=0; j<colsInRow; j++){
+                                positions.push({x: currentX, y: currentY, w: w, h: h});
+                                currentX += w + gap;
+                            }
+                            currentY += h + gap;
+                        }
+                    }
+                }
+                
+                images.forEach((img, i) => {
+                    const pos = positions[i];
+                    if (pos) {
+                        ctx.drawImage(img, pos.x, pos.y, pos.w, pos.h);
+                    }
+                });
+
+                return canvas.toDataURL();
+            }
+            const groupSettingsNameValue = document.getElementById('group-settings-name-value'); const groupSettingsAvatarPreview = document.getElementById('group-settings-avatar-preview'); const groupSettingsAdminValue = document.getElementById('group-settings-admin-value'); const groupLocalWorldSelect = document.getElementById('group-local-world-select');
+            document.getElementById('group-settings-back-btn').addEventListener('click', () => showScreen('dialogue')); function renderGroupSettings() { if (!activeCharacter || !activeCharacter.isGroup) return; groupSettingsNameValue.textContent = activeCharacter.name; groupSettingsAvatarPreview.style.backgroundImage = `url(${activeCharacter.avatar})`; const admin = characters.find(c => c.id === activeCharacter.adminId); groupSettingsAdminValue.textContent = admin ? admin.name : '未设置'; groupLocalWorldSelect.innerHTML = '<option value="none">无</option>'; worldBooks.local.forEach(book => { const option = document.createElement('option'); option.value = book.id; option.textContent = book.name; groupLocalWorldSelect.appendChild(option); }); groupLocalWorldSelect.value = activeCharacter.localWorldBookId || 'none'; }
+            document.getElementById('group-settings-name').addEventListener('click', () => { openTextEditor(groupSettingsNameValue, "修改群聊名称", (newName) => { activeCharacter.name = newName; saveCharactersToLocalStorage(); renderGroupSettings(); dialogueCharacterName.textContent = newName; }); }); document.getElementById('group-settings-avatar').addEventListener('click', () => setupImageEditor('element', groupSettingsAvatarPreview, null, 'group-avatar')); document.getElementById('group-settings-admin').addEventListener('click', () => { const members = characters.filter(c => activeCharacter.members.includes(c.id)); showSelectFriendsScreen('group-admin', { members }); }); groupLocalWorldSelect.addEventListener('change', (e) => { if(activeCharacter) { activeCharacter.localWorldBookId = e.target.value; saveCharactersToLocalStorage(); showFeedbackModal('已应用局部世界书'); }});
+
+            // --- 语音消息功能 ---
+            const functionsMenu = document.getElementById('functions-menu');
+            document.getElementById('functions-toggle-btn').addEventListener('click', () => { functionsMenu.style.display = functionsMenu.style.display === 'flex' ? 'none' : 'flex'; });
+            const voiceTextModalOverlay = document.getElementById('voiceTextModalOverlay'); const voiceTextContent = document.getElementById('voice-text-content'); document.getElementById('voice-text-close-btn').addEventListener('click', () => voiceTextModalOverlay.style.display = 'none');
+            document.getElementById('menu-voice-btn').addEventListener('click', () => { functionsMenu.style.display = 'none'; openTextEditor(null, "编辑语音内容", (text) => { if (!text) return; const duration = Math.max(1, Math.min(60, Math.floor(text.length / 4))); const message = { type: 'voice', content: text, duration: `${duration}"`, sender: 'me', authorName: myInfo.name, authorAvatar: myInfo.avatar }; appendMessage(message); if (activeCharacter) { activeCharacter.messages.push(message); saveCharactersToLocalStorage(); } }); });
+            
+            dialogueContent.addEventListener('click', (e) => { const bubble = e.target.closest('.wechat-voice-bubble'); if (bubble && bubble.dataset.text) { voiceTextContent.textContent = bubble.dataset.text; voiceTextModalOverlay.style.display = 'flex'; } });
+
+            // --- 页面加载 ---
+            function loadSavedSettings() {
+                // 加载主题、电池、字体设置
+                const savedTheme = localStorage.getItem('savedTheme'); if (savedTheme) { const s = JSON.parse(savedTheme); themeColorPicker.value = s.color; themeOpacitySlider.value = s.opacity; applyThemeColor(s.color); applyGlobalOpacity(s.opacity); }
+                const savedBattery = localStorage.getItem('savedBatteryTheme'); if (savedBattery) { const s = JSON.parse(savedBattery); batteryFillColorPicker.value = s.fillColor; batteryFillOpacitySlider.value = s.fillOpacity; batteryBorderColorPicker.value = s.borderColor; batteryBorderOpacitySlider.value = s.borderOpacity; applyBatteryStyle(s.fillColor, s.fillOpacity, '--battery-fill-color'); applyBatteryStyle(s.borderColor, s.borderOpacity, '--battery-border-color'); }
+                const savedFont = localStorage.getItem('savedFontSettings'); if (savedFont) { const s = JSON.parse(savedFont); fontColorPicker.value = s.color; fontWeightSlider.value = s.weight; if (s.source === 'file' && s.value) { applyFont(s.source, s.value, s.color, s.weight); } else if (s.source === 'url' && s.value) { fontUrlInput.value = s.value; applyFont(s.source, s.value, s.color, s.weight); } else { applyFont(null, null, s.color, s.weight); } }
+                const savedMyInfo = localStorage.getItem('myInfo'); if (savedMyInfo) myInfo = JSON.parse(savedMyInfo);
+                document.querySelectorAll('.user-name.editable').forEach(el => el.textContent = myInfo.name);
+            }
+            
+            // --- 初始化 ---
+            loadSavedSettings();
+            loadWorldBooks();
+            loadCharactersFromLocalStorage();
+            loadApiSettings();
+            loadWechatDataFromLocalStorage();
+            showScreen('phone');
+
+        });
+    </script>
+
+</body>
+</html>
